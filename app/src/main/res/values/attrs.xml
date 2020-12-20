@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="loopTrackSelectedColor" format="reference" />
+    <attr name="loopTrackUnselectedColor" format="reference" />
+    <attr name="loopASelectedColor" format="reference" />
+    <attr name="loopAUnselectedColor" format="reference" />
+    <attr name="loopBSelectedColor" format="reference" />
+    <attr name="loopBUnselectedColor" format="reference" />
+
+</resources>

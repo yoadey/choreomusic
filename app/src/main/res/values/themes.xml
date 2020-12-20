@@ -1,0 +1,117 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ChoreoMusicHelper" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/darkblue</item>
+        <item name="colorPrimaryVariant">@color/darkblue</item>
+        <item name="colorOnPrimary">@color/lightyellow</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/darkblue</item>
+        <item name="colorSecondaryVariant">@color/darkblue</item>
+        <item name="colorOnSecondary">@color/lightyellow</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:textColor">@color/lightyellow</item>
+        <item name="android:popupBackground">@color/darkblue</item>
+
+        <item name="android:textColorPrimary">@color/lightyellow</item>
+        <item name="android:textColorSecondary">@color/lightyellow</item>
+        <item name="actionMenuTextColor">@color/lightyellow</item>
+
+        <!-- Menu colors -->
+        <item name="android:contextPopupMenuStyle">@style/PopupLayout</item>
+        <item name="actionOverflowMenuStyle">@style/PopupLayout</item>
+
+    </style>
+
+    <style name="MainLayout">
+        <item name="android:background">@color/darkblue</item>
+    </style>
+
+    <style name="PopupLayout" parent="@style/Widget.MaterialComponents.PopupMenu.ContextMenu">
+       <item name="android:popupBackground">@drawable/dark_menu_round</item>
+    </style>
+
+    <style name="Theme.ChoreoMusicHelper.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="MainButton">
+        <item name="android:background">@color/cardview_shadow_end_color</item>
+        <item name="android:tint">@color/lightyellow</item>
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:adjustViewBounds">true</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconSize">40dp</item>
+    </style>
+
+    <style name="PlayButton">
+        <item name="android:layout_width">70dp</item>
+        <item name="android:layout_height">70dp</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconSize">60dp</item>
+        <item name="iconPadding">0dp</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="cornerRadius">44dp</item>
+        <item name="icon">@drawable/baseline_play_arrow_24</item>
+        <item name="strokeColor">@color/lightyellow</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+    <style name="BorderedButton">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="cornerRadius">5dp</item>
+        <item name="android:backgroundTint">@color/lightgrey</item>
+        <item name="android:textIsSelectable">false</item>
+    </style>
+
+    <style name="PopupTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_span">7</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="loop">
+        <item name="loopTrackSelectedColor">@color/lightgrey</item>
+        <item name="loopTrackUnselectedColor">@android:color/transparent</item>
+        <item name="loopASelectedColor">@color/orange_main</item>
+        <item name="loopAUnselectedColor">@color/lightorange</item>
+        <item name="loopBSelectedColor">@color/orange_main</item>
+        <item name="loopBUnselectedColor">@color/lightorange</item>
+    </style>
+
+    <style name="Slider">
+        <item name="trackColorActive">@color/orange_main</item>
+        <item name="trackColorInactive">@color/orange_back</item>
+        <item name="thumbColor">@color/orange_main</item>
+    </style>
+
+    <style name="Theme.ChoreoMusicHelper.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:textColorPrimary">@color/lightyellow</item>
+    </style>
+
+    <style name="Theme.ChoreoMusicHelper.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>
