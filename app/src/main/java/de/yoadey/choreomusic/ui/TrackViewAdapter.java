@@ -1,15 +1,19 @@
-package de.mayac.choreomusic.ui;
+package de.yoadey.choreomusic.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 
@@ -19,14 +23,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.mayac.choreomusic.MainActivity;
-import de.mayac.choreomusic.R;
-import de.mayac.choreomusic.model.PlaybackControl;
-import de.mayac.choreomusic.model.Playlist;
-import de.mayac.choreomusic.model.Track;
-import de.mayac.choreomusic.ui.popups.EditDialogFragment;
+import de.yoadey.choreomusic.R;
+import de.yoadey.choreomusic.model.PlaybackControl;
+import de.yoadey.choreomusic.model.Playlist;
+import de.yoadey.choreomusic.model.Song;
+import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.ui.popups.EditDialogFragment;
 
-public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<TrackViewHolder> implements Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
+public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<TrackViewAdapter.TrackViewHolder> implements Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
 
     private final PlaybackControl playbackControl;
     private final Playlist playlist;
@@ -47,12 +51,13 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     @NotNull
     @Override
-    public TrackViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        ConstraintLayout view = (ConstraintLayout) LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.popup_track
+    public TrackViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        ConstraintLayout view = (ConstraintLayout) LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.layout_track
                 , viewGroup, false);
         return new TrackViewHolder(view);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void onBindViewHolder(TrackViewHolder viewHolder, int i) {
         List<Track> tracks = playlist.getTracks();
@@ -65,7 +70,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
             MenuItem editItem = menu.add(R.string.track_edit);
             editItem.setOnMenuItemClickListener(item -> {
                 EditDialogFragment dialogFragment = new EditDialogFragment(playlist, track);
-                dialogFragment.show(((MainActivity) context).getSupportFragmentManager(), "OpenPopup");
+                dialogFragment.show(((FragmentActivity) context).getSupportFragmentManager(), "OpenPopup");
                 return true;
             });
             MenuItem deleteItem = menu.add(R.string.track_delete);
@@ -77,7 +82,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
         trackToLayout.put(track, layout);
         if (playbackControl.getCurrentTrack() == track) {
-            layout.setBackgroundColor(getColor(R.style.loop, R.attr.loopTrackSelectedColor));
+            layout.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
             currentTrack = layout;
         } else {
             layout.setBackgroundColor(Color.TRANSPARENT);
@@ -86,10 +91,10 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         trackLabel.setText(track.getLabel());
 
         TextView number = layout.findViewById(R.id.trackNumber);
-        number.setText(Integer.toString(i + 1));
+        number.setText(String.format("%d", i + 1));
 
         TextView time = layout.findViewById(R.id.trackTime);
-        String timeText = null;
+        String timeText;
         if (i < tracks.size() - 2) {
             timeText = String.format("%02d:%02d - %02d:%02d", track.getPosition() / 60000, track.getPosition() / 1000 % 60, nextTrack.getPosition() / 60000, nextTrack.getPosition() / 1000 % 60);
         } else {
@@ -101,7 +106,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         if (playbackControl.getStart() == track) {
             activateLoopA(nextTrack, loopB);
         } else {
-            loopA.setBackgroundColor(getColor(R.style.loop, R.attr.loopAUnselectedColor));
+            loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
         }
         loopA.setOnClickListener(view -> loopA(track, loopA));
 
@@ -109,7 +114,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         if (playbackControl.getEnd() == nextTrack) {
             activateLoopB(nextTrack, loopB);
         } else {
-            loopB.setBackgroundColor(getColor(R.style.loop, R.attr.loopBUnselectedColor));
+            loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
         }
         loopB.setOnClickListener(view -> loopB(nextTrack, loopB));
     }
@@ -138,38 +143,38 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     private void activateLoopA(Track track, MaterialButton loopA) {
         playbackControl.setStart(track);
-        loopA.setBackgroundColor(getColor(R.style.loop, R.attr.loopASelectedColor));
+        loopA.setBackgroundColor(getColor(R.attr.loopASelectedColor));
         if (this.loopA != null) {
-            this.loopA.setBackgroundColor(getColor(R.style.loop, R.attr.loopAUnselectedColor));
+            this.loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
         }
         this.loopA = loopA;
     }
 
     private void deactivateLoopA() {
         playbackControl.setStart(null);
-        this.loopA.setBackgroundColor(getColor(R.style.loop, R.attr.loopAUnselectedColor));
+        this.loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
         this.loopA = null;
     }
 
     private void activateLoopB(Track nextTrack, MaterialButton loopB) {
         playbackControl.setEnd(nextTrack);
-        loopB.setBackgroundColor(getColor(R.style.loop, R.attr.loopBSelectedColor));
+        loopB.setBackgroundColor(getColor(R.attr.loopBSelectedColor));
         if (this.loopB != null) {
-            this.loopB.setBackgroundColor(getColor(R.style.loop, R.attr.loopBUnselectedColor));
+            this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
         }
         this.loopB = loopB;
     }
 
     private void deactivateLoopB() {
         playbackControl.setEnd(null);
-        this.loopB.setBackgroundColor(getColor(R.style.loop, R.attr.loopBUnselectedColor));
+        this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
         this.loopB = null;
     }
 
-    private int getColor(int style, int attr) {
+    private int getColor(int attr) {
         @ColorInt int resultColor;
         int[] attrs = {attr};
-        TypedArray ta = context.obtainStyledAttributes(style, attrs);
+        TypedArray ta = context.obtainStyledAttributes(R.style.loop, attrs);
 
         if (ta != null) {
             resultColor = ta.getColor(0, Color.TRANSPARENT);
@@ -191,13 +196,23 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     }
 
     @Override
+    public void songChanged(Song newSong) {
+    }
+
+    @Override
     public void trackChanged(Track newTrack) {
         if (this.currentTrack != null) {
-            this.currentTrack.setBackgroundColor(getColor(R.style.loop, R.attr.loopTrackUnselectedColor));
+            this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackUnselectedColor));
         }
         this.currentTrack = trackToLayout.get(newTrack);
-        if(currentTrack != null) {
-            this.currentTrack.setBackgroundColor(getColor(R.style.loop, R.attr.loopTrackSelectedColor));
+        if (currentTrack != null) {
+            this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
+        }
+    }
+
+    public static class TrackViewHolder extends RecyclerView.ViewHolder {
+        public TrackViewHolder(View view) {
+            super(view);
         }
     }
 }

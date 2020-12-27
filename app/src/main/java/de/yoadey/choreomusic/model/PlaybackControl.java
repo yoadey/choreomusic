@@ -1,21 +1,27 @@
-package de.mayac.choreomusic.model;
+package de.yoadey.choreomusic.model;
 
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
+import android.os.IBinder;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
-import de.mayac.choreomusic.MainActivity;
+import de.yoadey.choreomusic.MainActivity;
+import de.yoadey.choreomusic.ui.SongsViewAdapter;
 import lombok.Getter;
 import lombok.Setter;
 
-public class PlaybackControl implements Playlist.PlaylistListener {
+public class PlaybackControl extends Service implements Playlist.PlaylistListener {
     private final MediaPlayer mediaPlayer;
     private final Handler handler = new Handler();
     private final Object threadRunningLock = new Object();
@@ -25,6 +31,9 @@ public class PlaybackControl implements Playlist.PlaylistListener {
     private boolean threadRunning;
     private boolean initialized;
     private boolean shouldPlay;
+
+    @Getter
+    private Song currentSong;
     @Getter
     @Setter
     private Track start;
@@ -66,16 +75,19 @@ public class PlaybackControl implements Playlist.PlaylistListener {
         }
         mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(speed));
         startLoopingThread();
+        listeners.forEach(l -> l.stateChanged(true));
     }
 
     public void pause() {
         mediaPlayer.pause();
         shouldPlay = false;
+        listeners.forEach(l -> l.stateChanged(false));
     }
 
     public void stop() {
         pause();
         mediaPlayer.seekTo(0);
+        listeners.forEach(l -> l.stateChanged(false));
     }
 
     public boolean isLoopActive() {
@@ -173,13 +185,21 @@ public class PlaybackControl implements Playlist.PlaylistListener {
         }
     }
 
-
-    public void openFile(Context context, Uri musicFile) {
+    public void openSong(Context context, Song song) {
+        if (Objects.equals(song, currentSong)) {
+            return;
+        }
         try {
+            stop();
             mediaPlayer.reset();
-            mediaPlayer.setDataSource(context, musicFile);
+            mediaPlayer.setDataSource(context, song.getParsedUri());
+            currentSong = song;
             mediaPlayer.prepare();
             initialized = true;
+            listeners.forEach(l -> l.songChanged(currentSong));
+            song.resetTracks();
+            List<Track> tracks = song.getTracks();
+            playlist.reset(tracks);
         } catch (IOException e) {
             // TODO: show error in a popup (don't know how currently...)
             e.printStackTrace();
@@ -203,7 +223,7 @@ public class PlaybackControl implements Playlist.PlaylistListener {
                 checkTrack();
             }
         });
-        if(! newTracks.isEmpty()) {
+        if (!newTracks.isEmpty()) {
             currentTrack = null;
             checkTrack();
         }
@@ -211,6 +231,10 @@ public class PlaybackControl implements Playlist.PlaylistListener {
 
     public void addPlaybackListener(PlaybackListener listener) {
         listeners.add(listener);
+    }
+
+    public void deletePlaybackListener(PlaybackListener listener) {
+        listeners.remove(listener);
     }
 
     public int getDuration() {
@@ -226,7 +250,17 @@ public class PlaybackControl implements Playlist.PlaylistListener {
         return mediaPlayer.getCurrentPosition();
     }
 
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
     public interface PlaybackListener {
-        void trackChanged(Track newTrack);
+        default void songChanged(Song newSong) {}
+
+        default void trackChanged(Track newTrack) {}
+
+        default void stateChanged(boolean playing) {}
     }
 }

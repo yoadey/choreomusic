@@ -1,4 +1,4 @@
-package de.mayac.choreomusic.ui;
+package de.yoadey.choreomusic.ui;
 
 import android.os.Bundle;
 import androidx.appcompat.app.ActionBar;
@@ -7,7 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import de.mayac.choreomusic.R;
+import de.yoadey.choreomusic.R;
 
 public class SettingsActivity extends AppCompatActivity {
 

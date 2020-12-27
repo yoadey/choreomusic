@@ -1,4 +1,4 @@
-package de.mayac.choreomusic.ui.popups;
+package de.yoadey.choreomusic.ui.popups;
 
 
 import android.os.Bundle;
@@ -10,9 +10,9 @@ import android.widget.TextView;
 
 import androidx.fragment.app.DialogFragment;
 
-import de.mayac.choreomusic.R;
-import de.mayac.choreomusic.model.Playlist;
-import de.mayac.choreomusic.model.Track;
+import de.yoadey.choreomusic.R;
+import de.yoadey.choreomusic.model.Playlist;
+import de.yoadey.choreomusic.model.Track;
 
 public class EditDialogFragment extends DialogFragment {
 

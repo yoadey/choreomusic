@@ -1,4 +1,4 @@
-package de.mayac.choreomusic.ui.popups;
+package de.yoadey.choreomusic.ui.popups;
 
 
 import android.os.Bundle;
@@ -10,8 +10,8 @@ import android.widget.TextView;
 
 import androidx.fragment.app.DialogFragment;
 
-import de.mayac.choreomusic.R;
-import de.mayac.choreomusic.model.PlaybackControl;
+import de.yoadey.choreomusic.R;
+import de.yoadey.choreomusic.model.PlaybackControl;
 
 public class PrePostDialogFragment extends DialogFragment {
 

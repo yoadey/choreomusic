@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.ChoreoMusicHelper" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/darkblue</item>
+        <item name="colorPrimary">@color/lightyellow</item>
         <item name="colorPrimaryVariant">@color/darkblue</item>
         <item name="colorOnPrimary">@color/lightyellow</item>
         <!-- Secondary brand color. -->
@@ -22,11 +22,16 @@
         <!-- Menu colors -->
         <item name="android:contextPopupMenuStyle">@style/PopupLayout</item>
         <item name="actionOverflowMenuStyle">@style/PopupLayout</item>
+        <item name="colorSurface">@color/darkblue</item>
 
     </style>
 
     <style name="MainLayout">
         <item name="android:background">@color/darkblue</item>
+    </style>
+
+    <style name="Tabs" parent="@style/Widget.MaterialComponents.TabLayout">
+        <item name="tabTextColor">@color/lightyellow</item>
     </style>
 
     <style name="PopupLayout" parent="@style/Widget.MaterialComponents.PopupMenu.ContextMenu">

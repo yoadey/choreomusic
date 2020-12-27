@@ -1,4 +1,4 @@
-package de.mayac.choreomusic.model;
+package de.yoadey.choreomusic.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +59,10 @@ public class Playlist {
 
     public void addPlaylistListener(PlaylistListener listener) {
         this.listeners.add(listener);
+    }
+
+    public void deletePlaylistListener(PlaylistListener listener) {
+        this.listeners.remove(listener);
     }
 
     public Track getTrackForPosition(int position) {

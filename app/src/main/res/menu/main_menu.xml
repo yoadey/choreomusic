@@ -5,21 +5,21 @@
     <item
         android:id="@+id/action_open"
         android:icon="@drawable/baseline_folder_open_24"
-        android:title="@string/menu_open"
+        android:title="@string/action_open"
         app:showAsAction="ifRoom" />
 
     <!-- Settings, should always be in the overflow -->
     <item
         android:id="@+id/action_export"
-        android:title="@string/menu_export" />
+        android:title="@string/action_export" />
     <item
         android:id="@+id/action_reload"
-        android:title="@string/menu_reload" />
-    <item
+        android:title="@string/action_reload" />
+    <!--<item
         android:id="@+id/action_settings"
-        android:title="@string/menu_settings" />
+        android:title="@string/action_settings" />-->
     <item
         android:id="@+id/action_about"
-        android:title="@string/menu_about" />
+        android:title="@string/action_about" />
 
 </menu>

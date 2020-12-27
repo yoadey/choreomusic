@@ -1,7 +1,10 @@
-package de.mayac.choreomusic.model;
+package de.yoadey.choreomusic.model;
+
+import android.net.Uri;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Keep;
 import org.greenrobot.greendao.annotation.NotNull;
 import org.greenrobot.greendao.annotation.ToMany;
 
@@ -15,7 +18,7 @@ import org.greenrobot.greendao.DaoException;
 
 @Entity
 @Data
-public class FileInfo {
+public class Song {
     @Id
     private Long id;
 
@@ -27,6 +30,8 @@ public class FileInfo {
 
     private String title;
 
+    private long length;
+
     @NotNull
     private Date lastUsed;
 
@@ -35,20 +40,25 @@ public class FileInfo {
     private transient DaoSession daoSession;
 
     /** Used for active entity operations. */
-    @Generated(hash = 1663953190)
-    private transient FileInfoDao myDao;
+    @Generated(hash = 1369727947)
+    private transient SongDao myDao;
 
-    @Generated(hash = 1501846165)
-    public FileInfo(Long id, @NotNull String uri, String title,
+    @Generated(hash = 264564511)
+    public Song(Long id, @NotNull String uri, String title, long length,
             @NotNull Date lastUsed) {
         this.id = id;
         this.uri = uri;
         this.title = title;
+        this.length = length;
         this.lastUsed = lastUsed;
     }
 
-    @Generated(hash = 1367591352)
-    public FileInfo() {
+    @Generated(hash = 87031450)
+    public Song() {
+    }
+
+    public Uri getParsedUri() {
+        return Uri.parse(uri);
     }
 
     public Long getId() {
@@ -75,6 +85,14 @@ public class FileInfo {
         this.title = title;
     }
 
+    public long getLength() {
+        return this.length;
+    }
+
+    public void setLength(long length) {
+        this.length = length;
+    }
+
     public Date getLastUsed() {
         return this.lastUsed;
     }
@@ -87,7 +105,7 @@ public class FileInfo {
      * To-many relationship, resolved on first access (and after reset).
      * Changes to to-many relations are not persisted, make changes to the target entity.
      */
-    @Generated(hash = 361914946)
+    @Generated(hash = 1825482532)
     public List<Track> getTracks() {
         if (tracks == null) {
             final DaoSession daoSession = this.daoSession;
@@ -95,7 +113,7 @@ public class FileInfo {
                 throw new DaoException("Entity is detached from DAO context");
             }
             TrackDao targetDao = daoSession.getTrackDao();
-            List<Track> tracksNew = targetDao._queryFileInfo_Tracks(id);
+            List<Track> tracksNew = targetDao._querySong_Tracks(id);
             synchronized (this) {
                 if (tracks == null) {
                     tracks = tracksNew;
@@ -148,9 +166,9 @@ public class FileInfo {
     }
 
     /** called by internal mechanisms, do not call yourself. */
-    @Generated(hash = 1757521107)
+    @Generated(hash = 767980484)
     public void __setDaoSession(DaoSession daoSession) {
         this.daoSession = daoSession;
-        myDao = daoSession != null ? daoSession.getFileInfoDao() : null;
+        myDao = daoSession != null ? daoSession.getSongDao() : null;
     }
 }

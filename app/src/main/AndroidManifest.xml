@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.mayac.choreomusic">
+    package="de.yoadey.choreomusic">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
 
     <application
         android:allowBackup="true"
@@ -29,13 +31,13 @@
 
         </activity>
         <activity
-            android:name=".ui.SettingsActivity" >
+            android:name=".ui.AboutActivity" >
         </activity>
 
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="de.mayac.choreomusic.provider"
+            android:authorities="de.yoadey.choreomusic.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <!-- resource file to create -->

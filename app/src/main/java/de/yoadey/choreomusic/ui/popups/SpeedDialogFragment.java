@@ -1,4 +1,4 @@
-package de.mayac.choreomusic.ui.popups;
+package de.yoadey.choreomusic.ui.popups;
 
 
 import android.os.Bundle;
@@ -12,8 +12,8 @@ import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.slider.Slider;
 
-import de.mayac.choreomusic.R;
-import de.mayac.choreomusic.model.PlaybackControl;
+import de.yoadey.choreomusic.R;
+import de.yoadey.choreomusic.model.PlaybackControl;
 
 public class SpeedDialogFragment extends DialogFragment {
 
