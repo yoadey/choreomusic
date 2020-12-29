@@ -1,9 +1,13 @@
 package de.yoadey.choreomusic.ui;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,7 +15,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,21 +38,46 @@ import de.yoadey.choreomusic.ui.popups.EditDialogFragment;
 
 public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<TrackViewAdapter.TrackViewHolder> implements Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
 
-    private final PlaybackControl playbackControl;
-    private final Playlist playlist;
+    private PlaybackControl playbackControl;
+    private Playlist playlist;
     private final Context context;
     private final Map<Track, ConstraintLayout> trackToLayout;
     private MaterialButton loopA;
     private MaterialButton loopB;
     private ConstraintLayout currentTrack;
 
-    public TrackViewAdapter(PlaybackControl playbackControl, Context context) {
-        this.playbackControl = playbackControl;
+    private ServiceConnection playbackControlConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            playbackControl = ((PlaybackControl.LocalBinder) iBinder).getInstance();
+            playbackControl.addPlaybackListener(TrackViewAdapter.this);
+            playlist = playbackControl.getPlaylist();
+            playlist.addPlaylistListener(TrackViewAdapter.this);
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            playbackControl.deletePlaybackListener(TrackViewAdapter.this);
+            playbackControl = null;
+            playlist = playbackControl.getPlaylist();
+            playlist.deletePlaylistListener(TrackViewAdapter.this);
+            playlist = null;
+            notifyDataSetChanged();
+        }
+    };
+
+    public TrackViewAdapter(Context context) {
         this.context = context;
-        this.playlist = playbackControl.getPlaylist();
-        playlist.addPlaylistListener(this);
-        playbackControl.addPlaybackListener(this);
         trackToLayout = new HashMap<>();
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        if(playbackControl == null) {
+            context.bindService(new Intent(context, PlaybackControl.class), playbackControlConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     @NotNull
@@ -186,6 +217,9 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     @Override
     public int getItemCount() {
+        if(playlist == null) {
+            return 0;
+        }
         return playlist.getTracks().size() - 1;
     }
 
@@ -207,6 +241,12 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         this.currentTrack = trackToLayout.get(newTrack);
         if (currentTrack != null) {
             this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
+        }
+    }
+
+    public void onDestroy() {
+        if (playbackControl != null) {
+            context.unbindService(playbackControlConnection);
         }
     }
 

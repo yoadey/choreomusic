@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.ChoreoMusicHelper" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/lightyellow</item>
+        <item name="colorPrimary">@color/darkblue</item>
         <item name="colorPrimaryVariant">@color/darkblue</item>
         <item name="colorOnPrimary">@color/lightyellow</item>
         <!-- Secondary brand color. -->
@@ -12,18 +12,21 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/darkblue</item>
         <item name="android:textColor">@color/lightyellow</item>
         <item name="android:popupBackground">@color/darkblue</item>
 
         <item name="android:textColorPrimary">@color/lightyellow</item>
         <item name="android:textColorSecondary">@color/lightyellow</item>
         <item name="actionMenuTextColor">@color/lightyellow</item>
+        <item name="colorControlActivated">@color/lightyellow</item>
+        <item name="colorAccent">@color/lightyellow</item>
+        <item name="android:navigationBarColor">@color/darkblue</item>
 
         <!-- Menu colors -->
         <item name="android:contextPopupMenuStyle">@style/PopupLayout</item>
         <item name="actionOverflowMenuStyle">@style/PopupLayout</item>
         <item name="colorSurface">@color/darkblue</item>
-
     </style>
 
     <style name="MainLayout">
@@ -32,6 +35,7 @@
 
     <style name="Tabs" parent="@style/Widget.MaterialComponents.TabLayout">
         <item name="tabTextColor">@color/lightyellow</item>
+        <item name="tabIndicatorColor">?attr/colorAccent</item>
     </style>
 
     <style name="PopupLayout" parent="@style/Widget.MaterialComponents.PopupMenu.ContextMenu">
@@ -44,8 +48,6 @@
     </style>
 
     <style name="MainButton">
-        <item name="android:background">@color/cardview_shadow_end_color</item>
-        <item name="android:tint">@color/lightyellow</item>
         <item name="android:layout_width">48dp</item>
         <item name="android:layout_height">48dp</item>
         <item name="android:layout_gravity">center_vertical</item>
@@ -113,10 +115,4 @@
         <item name="trackColorInactive">@color/orange_back</item>
         <item name="thumbColor">@color/orange_main</item>
     </style>
-
-    <style name="Theme.ChoreoMusicHelper.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-        <item name="android:textColorPrimary">@color/lightyellow</item>
-    </style>
-
-    <style name="Theme.ChoreoMusicHelper.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

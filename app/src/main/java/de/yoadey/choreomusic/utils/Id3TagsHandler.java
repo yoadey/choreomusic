@@ -103,7 +103,7 @@ public class Id3TagsHandler implements AutoCloseable {
             for (int i = 0; i < tracks.size() - 1; i++) {
                 Track track = tracks.get(i);
                 Track nextTrack = tracks.get(i + 1);
-                ID3v2ChapterFrameData frameData = new ID3v2ChapterFrameData(false, "" + i, track.getPosition(), nextTrack.getPosition(), -1, -1);
+                ID3v2ChapterFrameData frameData = new ID3v2ChapterFrameData(false, "" + i, (int) track.getPosition(), (int) nextTrack.getPosition(), -1, -1);
 
                 // Save track label
                 EncodedText encodedTitle = new EncodedText(track.getLabel());

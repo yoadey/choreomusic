@@ -1,51 +1,73 @@
 package de.yoadey.choreomusic.model;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioAttributes;
-import android.media.MediaPlayer;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.Nullable;
 
-import java.io.IOException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
+import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator;
+import com.google.android.exoplayer2.ui.PlayerNotificationManager;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import de.yoadey.choreomusic.MainActivity;
-import de.yoadey.choreomusic.ui.SongsViewAdapter;
+import de.yoadey.choreomusic.R;
 import lombok.Getter;
 import lombok.Setter;
 
 public class PlaybackControl extends Service implements Playlist.PlaylistListener {
-    private final MediaPlayer mediaPlayer;
+    public static final String PLAYBACK_CHANNEL_ID = "PlaybackServiceForegroundServiceChannel";
+    public static final int PLAYBACK_NOTIFICATION_ID = 1;
+    public static final String MEDIA_SESSION_TAG = "audio_demo";
+    public static final String DOWNLOAD_CHANNEL_ID = "download_channel";
+    public static final int DOWNLOAD_NOTIFICATION_ID = 2;
     private final Handler handler = new Handler();
     private final Object threadRunningLock = new Object();
     private final Set<PlaybackListener> listeners;
     @Getter
     private final Playlist playlist;
+    private ExoPlayer player;
+    private MediaSessionCompat mediaSession;
+    private MediaSessionConnector mediaSessionConnector;
+    private PlayerNotificationManager playerNotificationManager;
     private boolean threadRunning;
     private boolean initialized;
-    private boolean shouldPlay;
 
     @Getter
     private Song currentSong;
     @Getter
-    @Setter
     private Track start;
     @Getter
-    @Setter
     private Track end;
     @Getter
     @Setter
-    private int leadInTime;
+    private long leadInTime;
     @Getter
     @Setter
-    private int leadOutTime;
+    private long leadOutTime;
     @Getter
     private float speed;
 
@@ -55,39 +77,134 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private Track currentTrack;
     private Track nextTrack;
 
-    public PlaybackControl(Playlist playlist) {
+    public PlaybackControl() {
         listeners = new HashSet<>();
-        this.playlist = playlist;
+        this.playlist = new Playlist();
         playlist.addPlaylistListener(this);
-        mediaPlayer = new MediaPlayer();
-        AudioAttributes.Builder builder = new AudioAttributes.Builder();
-        AudioAttributes attributes = builder.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .build();
-        mediaPlayer.setAudioAttributes(attributes);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        final Context context = this;
+        player = new SimpleExoPlayer.Builder(context).build();
+        player.prepare();
+
+        playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(
+                context,
+                PLAYBACK_CHANNEL_ID,
+                R.string.playback_channel_name,
+                PLAYBACK_NOTIFICATION_ID,
+                new PlayerNotificationManager.MediaDescriptionAdapter() {
+                    @NotNull
+                    @Override
+                    public String getCurrentContentTitle(Player player) {
+                        if (currentSong == null) {
+                            return "Nothing loaded";
+                        }
+                        return currentSong.getTitle();
+                    }
+
+                    @Nullable
+                    @Override
+                    public PendingIntent createCurrentContentIntent(@NotNull Player player) {
+                        return null;
+                    }
+
+                    @Nullable
+                    @Override
+                    public String getCurrentContentText(@NotNull Player player) {
+                        return Optional.ofNullable(currentTrack)
+                                .map(Track::getLabel)
+                                .orElse(null);
+                    }
+
+                    @Nullable
+                    @Override
+                    public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
+                        return ((BitmapDrawable) context.getResources().getDrawable(R.drawable.ic_stat_name, null)).getBitmap();
+                    }
+                },
+                new PlayerNotificationManager.NotificationListener() {
+                    @Override
+                    public void onNotificationPosted(int notificationId, @NotNull Notification notification, boolean ongoing) {
+                        startForeground(notificationId, notification);
+                    }
+
+                    @Override
+                    public void onNotificationCancelled(int notificationId, boolean dismissedByUser) {
+                        stopSelf();
+                    }
+                }
+        );
+        playerNotificationManager.setPlayer(player);
+        player.addListener(new Player.EventListener() {
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                if(isPlaying) {
+                    startLoopingThread();
+                }
+                listeners.forEach(l -> l.onIsPlayingChanged(isPlaying));
+            }
+
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if(state == Player.STATE_ENDED && isLoopActive()) {
+                    seekTo(start);
+                }
+            }
+        });
+
+        mediaSession = new MediaSessionCompat(context, MEDIA_SESSION_TAG);
+        mediaSession.setActive(true);
+        playerNotificationManager.setMediaSessionToken(mediaSession.getSessionToken());
+
+        mediaSessionConnector = new MediaSessionConnector(mediaSession);
+        mediaSessionConnector.setQueueNavigator(new TimelineQueueNavigator(mediaSession) {
+            @Override
+            public MediaDescriptionCompat getMediaDescription(@NotNull Player player, int windowIndex) {
+                if (currentSong == null) {
+                    return new MediaDescriptionCompat.Builder()
+                            .build();
+                }
+                return new MediaDescriptionCompat.Builder()
+                        .setMediaId(currentSong.getUri())
+                        .setTitle(currentSong.getTitle())
+                        .build();
+            }
+        });
+        mediaSessionConnector.setPlayer(player);
+    }
+
+    @Override
+    public void onDestroy() {
+        mediaSession.release();
+        mediaSessionConnector.setPlayer(null);
+        playerNotificationManager.setPlayer(null);
+        player.release();
+        player = null;
+
+        super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
     }
 
     public void play() {
-        shouldPlay = true;
-
-        if (speed == 0.0f) {
-            speed = 1.0f;
-        }
-        mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(speed));
+        setSpeed(speed == 0.0f ? 1.0f : speed);
+        player.play();
         startLoopingThread();
-        listeners.forEach(l -> l.stateChanged(true));
     }
 
     public void pause() {
-        mediaPlayer.pause();
-        shouldPlay = false;
-        listeners.forEach(l -> l.stateChanged(false));
+        player.pause();
     }
 
     public void stop() {
-        pause();
-        mediaPlayer.seekTo(0);
-        listeners.forEach(l -> l.stateChanged(false));
+        player.stop();
     }
 
     public boolean isLoopActive() {
@@ -96,19 +213,35 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void setSpeed(float speed) {
         this.speed = speed;
-        if (mediaPlayer != null && shouldPlay) {
-            mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(speed));
+        player.setPlaybackParameters(new PlaybackParameters(speed));
+    }
+
+    public void setStart(Track start) {
+        this.start = start;
+        if (isLoopActive()) {
+            player.setRepeatMode(Player.REPEAT_MODE_ONE);
+        } else {
+            player.setRepeatMode(Player.REPEAT_MODE_OFF);
         }
     }
 
-    public int getStartPosition() {
+    public void setEnd(Track end) {
+        this.end = end;
+        if (isLoopActive()) {
+            player.setRepeatMode(Player.REPEAT_MODE_ONE);
+        } else {
+            player.setRepeatMode(Player.REPEAT_MODE_OFF);
+        }
+    }
+
+    public long getStartPosition() {
         if (!isLoopActive()) {
             return 0;
         }
         return Math.max(0, start.getPosition() - leadInTime);
     }
 
-    public int getEndPosition() {
+    public long getEndPosition() {
         if (!isLoopActive()) {
             return Integer.MAX_VALUE;
         }
@@ -116,11 +249,11 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     public boolean isPlaying() {
-        return shouldPlay;
+        return player.isPlaying();
     }
 
     public void seekTo(Track track) {
-        mediaPlayer.seekTo(track.getPosition());
+        player.seekTo(track.getPosition());
         currentTrack = track;
         nextTrack = playlist.getNextTrack(track);
         listeners.forEach(l -> l.trackChanged(currentTrack));
@@ -143,9 +276,9 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 checkTrack();
 
                 // Restart handler
-                if (shouldPlay) {
+                if (player.isPlaying()) {
                     // If the loop cycle should end before normal delay, then update it earlier
-                    int delay = Math.min(MainActivity.BACKGROUND_THREAD_DELAY, getEndPosition() - mediaPlayer.getCurrentPosition());
+                    long delay = Math.min(MainActivity.BACKGROUND_THREAD_DELAY, getEndPosition() - player.getCurrentPosition());
                     delay = Math.max(0, delay);
                     handler.postDelayed(this, delay);
                 } else {
@@ -160,20 +293,16 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private void checkLoop() {
         // Update loop
         if (isLoopActive()) {
-            if (mediaPlayer.getCurrentPosition() >= getEndPosition() ||
-                    (shouldPlay && !mediaPlayer.isPlaying() && mediaPlayer.getCurrentPosition() >= mediaPlayer.getDuration())) {
-                mediaPlayer.seekTo(getStartPosition());
-                if (shouldPlay && !mediaPlayer.isPlaying()) {
-                    mediaPlayer.start();
-                }
+            if (player.getCurrentPosition() < getStartPosition() || player.getCurrentPosition() >= getEndPosition()) {
+                player.seekTo(getStartPosition());
             }
         }
     }
 
     private void checkTrack() {
-        if (currentTrack == null || mediaPlayer.getCurrentPosition() < currentTrack.getPosition() ||
-                mediaPlayer.getCurrentPosition() > nextTrack.getPosition()) {
-            currentTrack = playlist.getTrackForPosition(mediaPlayer.getCurrentPosition());
+        if (currentTrack == null || player.getCurrentPosition() < currentTrack.getPosition() ||
+                player.getCurrentPosition() > nextTrack.getPosition()) {
+            currentTrack = playlist.getTrackForPosition(player.getCurrentPosition());
             nextTrack = playlist.getNextTrack(currentTrack);
             listeners.forEach(l -> l.trackChanged(currentTrack));
         }
@@ -185,25 +314,22 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
     }
 
-    public void openSong(Context context, Song song) {
+    public synchronized void openSong(Song song) {
         if (Objects.equals(song, currentSong)) {
             return;
         }
-        try {
+        if (initialized) {
             stop();
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(context, song.getParsedUri());
-            currentSong = song;
-            mediaPlayer.prepare();
-            initialized = true;
-            listeners.forEach(l -> l.songChanged(currentSong));
-            song.resetTracks();
-            List<Track> tracks = song.getTracks();
-            playlist.reset(tracks);
-        } catch (IOException e) {
-            // TODO: show error in a popup (don't know how currently...)
-            e.printStackTrace();
         }
+        MediaItem mediaItem = MediaItem.fromUri(song.getParsedUri());
+        player.setMediaItem(mediaItem);
+        currentSong = song;
+        player.prepare();
+        initialized = true;
+        listeners.forEach(l -> l.songChanged(currentSong));
+        song.resetTracks();
+        List<Track> tracks = song.getTracks();
+        playlist.reset(tracks);
     }
 
     @Override
@@ -237,30 +363,35 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         listeners.remove(listener);
     }
 
-    public int getDuration() {
-        return mediaPlayer.getDuration();
-    }
-
     public void seekTo(int progress) {
-        mediaPlayer.seekTo(progress);
+        player.seekTo(progress);
         checkTrack();
     }
 
-    public int getCurrentPosition() {
-        return mediaPlayer.getCurrentPosition();
+    public long getCurrentPosition() {
+        return player.getCurrentPosition();
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return new LocalBinder();
     }
 
     public interface PlaybackListener {
-        default void songChanged(Song newSong) {}
+        default void songChanged(Song newSong) {
+        }
 
-        default void trackChanged(Track newTrack) {}
+        default void trackChanged(Track newTrack) {
+        }
 
-        default void stateChanged(boolean playing) {}
+        default void onIsPlayingChanged(boolean isPlaying) {
+        }
+    }
+
+    public class LocalBinder extends Binder {
+        public PlaybackControl getInstance() {
+            return PlaybackControl.this;
+        }
     }
 }

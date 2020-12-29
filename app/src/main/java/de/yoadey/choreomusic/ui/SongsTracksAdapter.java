@@ -1,5 +1,6 @@
 package de.yoadey.choreomusic.ui;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,15 +13,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import de.yoadey.choreomusic.R;
-import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Song;
 
 public class SongsTracksAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<SongsTracksAdapter.TabViewHolder> {
+    private final Context context;
     private final List<Song> songs;
-    private final PlaybackControl playbackControl;
+    private SongsViewAdapter songsViewAdapter;
+    private TrackViewAdapter trackViewAdapter;
 
-    public SongsTracksAdapter(List<Song> songs, PlaybackControl playbackControl) {
-        this.playbackControl = playbackControl;
+    public SongsTracksAdapter(Context context, List<Song> songs) {
+        this.context = context;
         this.songs = songs;
     }
 
@@ -49,8 +51,10 @@ public class SongsTracksAdapter extends androidx.recyclerview.widget.RecyclerVie
         RecyclerView songsView = view.findViewById(R.id.items);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(view.getContext());
         songsView.setLayoutManager(layoutManager);
-        SongsViewAdapter songViewAdapter = new SongsViewAdapter(songs, playbackControl, view.getContext());
-        songsView.setAdapter(songViewAdapter);
+        if (songsViewAdapter == null) {
+            songsViewAdapter = new SongsViewAdapter(songs, context);
+        }
+        songsView.setAdapter(songsViewAdapter);
     }
 
     private void bindTracksViewHolder(TabViewHolder holder) {
@@ -58,8 +62,19 @@ public class SongsTracksAdapter extends androidx.recyclerview.widget.RecyclerVie
         RecyclerView tracksView = view.findViewById(R.id.items);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(view.getContext());
         tracksView.setLayoutManager(layoutManager);
-        TrackViewAdapter trackViewAdapter = new TrackViewAdapter(playbackControl, view.getContext());
+        if (trackViewAdapter == null) {
+            trackViewAdapter = new TrackViewAdapter(context);
+        }
         tracksView.setAdapter(trackViewAdapter);
+    }
+
+    public void onDestroy() {
+        if(trackViewAdapter != null) {
+            trackViewAdapter.onDestroy();
+        }
+        if(songsViewAdapter != null) {
+            songsViewAdapter.onDestroy();
+        }
     }
 
     @Override

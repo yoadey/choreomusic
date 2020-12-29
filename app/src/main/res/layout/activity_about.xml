@@ -10,7 +10,6 @@
         android:id="@+id/toolbar_settings_activity"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        app:title="@string/action_about" />
 
 </LinearLayout>

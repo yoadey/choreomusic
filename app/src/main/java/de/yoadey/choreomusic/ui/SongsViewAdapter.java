@@ -1,52 +1,64 @@
 package de.yoadey.choreomusic.ui;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
-import android.content.res.TypedArray;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.utils.Utils;
 
 public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.TrackViewHolder> implements Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
 
     private final List<Song> songs;
-    private final PlaybackControl playbackControl;
-    private final Map<Song, ConstraintLayout> songToLayout;
     private final Context context;
-    private ConstraintLayout currentSong;
+    private PlaybackControl playbackControl;
 
-    public SongsViewAdapter(List<Song> songs, PlaybackControl playbackControl, Context context) {
-        this.playbackControl = playbackControl;
-        playbackControl.getCurrentSong();
-        playbackControl.addPlaybackListener(this);
+    private final ServiceConnection playbackControlConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            playbackControl = ((PlaybackControl.LocalBinder) iBinder).getInstance();
+            playbackControl.addPlaybackListener(SongsViewAdapter.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            playbackControl.deletePlaybackListener(SongsViewAdapter.this);
+            playbackControl = null;
+        }
+    };
+
+    public SongsViewAdapter(List<Song> songs, Context context) {
         this.context = context;
         this.songs = songs;
-        songToLayout = new HashMap<>();
     }
 
     @Override
-    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        super.onDetachedFromRecyclerView(recyclerView);
-        playbackControl.deletePlaybackListener(this);
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        if (playbackControl == null) {
+            context.bindService(new Intent(context, PlaybackControl.class), playbackControlConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     @NotNull
@@ -63,12 +75,10 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
         final Song song = songs.get(i);
 
         ConstraintLayout layout = (ConstraintLayout) viewHolder.itemView;
-        layout.setOnClickListener(view -> playbackControl.openSong(context, song));
+        layout.setOnClickListener(view -> playbackControl.openSong(song));
 
-        songToLayout.put(song, layout);
-        if (playbackControl.getCurrentSong() == song) {
-            layout.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
-            currentSong = layout;
+        if (playbackControl != null && playbackControl.getCurrentSong() == song) {
+            layout.setBackgroundColor(Utils.getColor(context, R.style.loop, R.attr.loopTrackSelectedColor));
         } else {
             layout.setBackgroundColor(Color.TRANSPARENT);
         }
@@ -83,18 +93,6 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
         time.setText(timeText);
     }
 
-    private int getColor(int attr) {
-        @ColorInt int resultColor;
-        int[] attrs = {attr};
-        TypedArray ta = context.obtainStyledAttributes(R.style.loop, attrs);
-
-        if (ta != null) {
-            resultColor = ta.getColor(0, Color.TRANSPARENT);
-            ta.recycle();
-            return resultColor;
-        }
-        return Color.TRANSPARENT;
-    }
 
     @Override
     public int getItemCount() {
@@ -103,7 +101,6 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
 
     @Override
     public void notifyPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
-        songToLayout.clear();
         notifyDataSetChanged();
     }
 
@@ -114,6 +111,12 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
 
     @Override
     public void trackChanged(Track newTrack) {
+    }
+
+    public void onDestroy() {
+        if (playbackControl != null) {
+            context.unbindService(playbackControlConnection);
+        }
     }
 
     public static class TrackViewHolder extends RecyclerView.ViewHolder {

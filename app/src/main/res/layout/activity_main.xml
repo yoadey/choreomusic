@@ -10,8 +10,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        style="@style/MainLayout">
+        android:orientation="vertical">
 
         <!-- Other views -->
 
@@ -19,8 +18,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:elevation="4dp"
-            android:theme="@style/Theme.ChoreoMusicHelper.AppBarOverlay" />
+            android:elevation="4dp" />
 
 
         <com.google.android.material.tabs.TabLayout

@@ -20,18 +20,18 @@ public class Track {
     private long fileId;
 
     @NotNull
-    private int position;
+    private long position;
 
     @NotNull
     private String label;
 
-    public Track(int position, String label) {
+    public Track(long position, String label) {
         this.position = position;
         this.label = label;
     }
 
-    @Generated(hash = 1217065924)
-    public Track(Long id, long fileId, int position, @NotNull String label) {
+    @Generated(hash = 2121863005)
+    public Track(Long id, long fileId, long position, @NotNull String label) {
         this.id = id;
         this.fileId = fileId;
         this.position = position;
@@ -58,11 +58,11 @@ public class Track {
         this.fileId = fileId;
     }
 
-    public int getPosition() {
+    public long getPosition() {
         return this.position;
     }
 
-    public void setPosition(int position) {
+    public void setPosition(long position) {
         this.position = position;
     }
 

@@ -13,11 +13,14 @@ import java.util.Date;
 import java.util.List;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.DaoException;
 
 @Entity
 @Data
+@EqualsAndHashCode(of = {"id", "uri"})
 public class Song {
     @Id
     private Long id;

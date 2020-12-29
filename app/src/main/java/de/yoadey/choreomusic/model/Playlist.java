@@ -30,14 +30,14 @@ public class Playlist {
             return;
         }
         tracks.add(track);
-        tracks.sort((o1, o2) -> o1.getPosition() - o2.getPosition());
+        tracks.sort((o1, o2) -> Long.compare(o1.getPosition(), o2.getPosition()));
         listeners.forEach(l -> l.notifyPlaylistChanged(singletonList(track), emptyList(), getTracks()));
     }
 
     public void addTracks(List<Track> tracks) {
         List<Track> newTracks = tracks.stream().filter(t -> !tracks.contains(t)).collect(Collectors.toList());
         tracks.addAll(newTracks);
-        tracks.sort((o1, o2) -> o1.getPosition() - o2.getPosition());
+        tracks.sort((o1, o2) -> Long.compare(o1.getPosition(), o2.getPosition()));
         listeners.forEach(l -> l.notifyPlaylistChanged(newTracks, emptyList(), getTracks()));
     }
 
@@ -65,7 +65,7 @@ public class Playlist {
         this.listeners.remove(listener);
     }
 
-    public Track getTrackForPosition(int position) {
+    public Track getTrackForPosition(long position) {
         Track lastTrack = null;
         Track nextTrack = null;
         for (int i = 0; i < tracks.size(); i++) {
@@ -92,7 +92,7 @@ public class Playlist {
         Set<Track> oldTracks = new HashSet<>(this.tracks);
         this.tracks.clear();
         this.tracks.addAll(tracks);
-        this.tracks.sort((o1, o2) -> o1.getPosition() - o2.getPosition());
+        this.tracks.sort((o1, o2) -> Long.compare(o1.getPosition(), o2.getPosition()));
         if (this.tracks.isEmpty() || this.tracks.get(0).getPosition() > 0) {
             this.tracks.add(0, new Track(0, "Start"));
         }

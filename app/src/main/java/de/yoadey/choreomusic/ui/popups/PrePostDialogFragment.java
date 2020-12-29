@@ -29,9 +29,9 @@ public class PrePostDialogFragment extends DialogFragment {
                 false);
 
         TextView leadInTextView = rootView.findViewById(R.id.prepostPreTime);
-        leadInTextView.setText(Integer.toString(playbackControl.getLeadInTime()/1000));
+        leadInTextView.setText(Long.toString(playbackControl.getLeadInTime()/1000l));
         TextView leadOutTextView = rootView.findViewById(R.id.prepostPostTime);
-        leadOutTextView.setText(Integer.toString(playbackControl.getLeadOutTime()/1000));
+        leadOutTextView.setText(Long.toString(playbackControl.getLeadOutTime()/1000l));
 
         View leadInPlusButton = rootView.findViewById(R.id.prepostPrePlus);
         leadInPlusButton.setOnClickListener(view -> changeValue(leadInTextView,1));

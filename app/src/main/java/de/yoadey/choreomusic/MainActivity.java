@@ -2,12 +2,17 @@ package de.yoadey.choreomusic;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
+import android.support.v4.media.MediaBrowserCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -54,12 +59,35 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
     private static final String SP_FILE_KEY = "MUSIC_FILE";
     private final Handler handler = new Handler();
     private final Object threadRunningLock = new Object();
+    private MediaBrowserCompat mMediaBrowser;
     private DatabaseHelper databaseHelper;
     private PlaybackControl playbackControl;
+    private SongsTracksAdapter songsTracksAdapter;
     private Playlist playlist;
     private List<Song> songs;
     private boolean threadRunning;
     private Id3TagsHandler id3Handler;
+
+    private final ServiceConnection playbackControlConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            playbackControl = ((PlaybackControl.LocalBinder) iBinder).getInstance();
+            playbackControl.addPlaybackListener(MainActivity.this);
+            playbackControl.addPlaybackListener(databaseHelper);
+            playbackControl.setSpeed(1.0f);
+            playlist = playbackControl.getPlaylist();
+            playlist.addPlaylistListener(databaseHelper);
+            reloadLastFile();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            playbackControl.deletePlaybackListener(MainActivity.this);
+            playbackControl.deletePlaybackListener(databaseHelper);
+            playlist.deletePlaylistListener(databaseHelper);
+            playbackControl = null;
+        }
+    };
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -99,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
         }
         song.setLastUsed(new Date());
         databaseHelper.saveSong(song);
-        if(isNew) {
+        if (isNew) {
             databaseHelper.saveTracks(song.getTracks());
         }
 
@@ -109,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
         }
 
         // Open file
-        playbackControl.openSong(this, song);
+        playbackControl.openSong(song);
     }
 
     @SuppressLint({"SetTextI18n", "DefaultLocale"})
@@ -118,14 +146,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
         super.onCreate(savedInstanceState);
         databaseHelper = new DatabaseHelper(getApplicationContext());
         id3Handler = new Id3TagsHandler(this, getContentResolver());
-        playlist = new Playlist();
         songs = new ArrayList<>();
         songs.addAll(databaseHelper.getAllSongs());
-        playbackControl = new PlaybackControl(playlist);
-        playbackControl.addPlaybackListener(this);
-        playbackControl.addPlaybackListener(databaseHelper);
-        playbackControl.setSpeed(1.0f);
-        playlist.addPlaylistListener(databaseHelper);
+        startForegroundService(new Intent(getApplicationContext(), PlaybackControl.class));
+        bindService(new Intent(this, PlaybackControl.class), playbackControlConnection, Context.BIND_AUTO_CREATE);
 
         setContentView(R.layout.activity_main);
 
@@ -168,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
 
         View bookmark = findViewById(R.id.addMark);
         bookmark.setOnClickListener(view -> playbackControl.ifInitialized(() -> {
-            int bookmarkPosition = playbackControl.getCurrentPosition();
+            long bookmarkPosition = playbackControl.getCurrentPosition();
             Track track = new Track(bookmarkPosition, "Track " + (playlist.getTracks().size() - 1));
             playlist.addTrack(track);
         }));
@@ -187,7 +211,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
         });
 
         ViewPager2 viewPager = findViewById(R.id.main_area);
-        viewPager.setAdapter(new SongsTracksAdapter(songs, playbackControl));
+        songsTracksAdapter = new SongsTracksAdapter(this, songs);
+        viewPager.setAdapter(songsTracksAdapter);
         TabLayout tabLayout = findViewById(R.id.tabs);
         new TabLayoutMediator(tabLayout, viewPager,
                 (tab, position) -> {
@@ -198,9 +223,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
                     }
                 }
         ).attach();
-
-
-        reloadLastFile();
     }
 
     @Override
@@ -300,8 +322,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
 
     @SuppressLint("DefaultLocale")
     private void updateSlider() {
-        int position = playbackControl.getCurrentPosition();
+        long position = playbackControl.getCurrentPosition();
         Slider slider = findViewById(R.id.progressSlider);
+        position = Math.min(Math.max(0l, position), (long) slider.getValueTo());
         slider.setValue(position);
         TextView time = findViewById(R.id.time);
         time.setText(String.format("%02d:%02d", position / 60000, position / 1000 % 60));
@@ -313,11 +336,15 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
     private void reloadLastFile() {
         // Reloading of last file should happen asynchronously, so it doesn't block the UI thread
         handler.post(() -> {
-            SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
-            String fileUri = sharedPreferences.getString(SP_FILE_KEY, null);
-            if (fileUri != null) {
-                Uri uri = Uri.parse(fileUri);
-                openFile(uri);
+            if (playbackControl.getCurrentSong() != null) {
+                openFile(playbackControl.getCurrentSong().getParsedUri());
+            } else {
+                SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
+                String fileUri = sharedPreferences.getString(SP_FILE_KEY, null);
+                if (fileUri != null) {
+                    Uri uri = Uri.parse(fileUri);
+                    openFile(uri);
+                }
             }
         });
     }
@@ -325,9 +352,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        playbackControl.deletePlaybackListener(this);
-        playbackControl.deletePlaybackListener(databaseHelper);
-        playlist.deletePlaylistListener(databaseHelper);
+        if (playbackControl != null) {
+            unbindService(playbackControlConnection);
+        }
+        if (songsTracksAdapter != null) {
+            songsTracksAdapter.onDestroy();
+        }
     }
 
     @Override
@@ -343,9 +373,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
     }
 
     @Override
-    public void stateChanged(boolean playing) {
+    public void onIsPlayingChanged(boolean isPlaying) {
         MaterialButton play = findViewById(R.id.playpause);
-        if (playing) {
+        if (isPlaying) {
             play.setIconResource(R.drawable.baseline_pause_24);
             startLoopingThread();
         } else {
