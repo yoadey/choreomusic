@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChoreoMusicHelper">
         <service android:name=".model.PlaybackControl"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>

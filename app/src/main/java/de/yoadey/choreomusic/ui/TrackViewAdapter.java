@@ -17,7 +17,6 @@ import android.widget.TextView;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -45,8 +44,9 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     private MaterialButton loopA;
     private MaterialButton loopB;
     private ConstraintLayout currentTrack;
+    private RecyclerView recyclerView;
 
-    private ServiceConnection playbackControlConnection = new ServiceConnection() {
+    private final ServiceConnection playbackControlConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             playbackControl = ((PlaybackControl.LocalBinder) iBinder).getInstance();
@@ -59,10 +59,10 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             playbackControl.deletePlaybackListener(TrackViewAdapter.this);
-            playbackControl = null;
             playlist = playbackControl.getPlaylist();
             playlist.deletePlaylistListener(TrackViewAdapter.this);
             playlist = null;
+            playbackControl = null;
             notifyDataSetChanged();
         }
     };
@@ -74,6 +74,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     @Override
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        this.recyclerView = recyclerView;
         super.onAttachedToRecyclerView(recyclerView);
         if(playbackControl == null) {
             context.bindService(new Intent(context, PlaybackControl.class), playbackControlConnection, Context.BIND_AUTO_CREATE);
@@ -242,6 +243,9 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         if (currentTrack != null) {
             this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
         }
+        int position = playlist.getTracks().indexOf(newTrack);
+        position = Math.max(0, Math.min(getItemCount()-1, position));
+        recyclerView.scrollToPosition(position);
     }
 
     public void onDestroy() {

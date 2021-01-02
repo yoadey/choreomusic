@@ -1,13 +1,12 @@
 package de.yoadey.choreomusic.model;
 
 import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Index;
 import org.greenrobot.greendao.annotation.NotNull;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.greenrobot.greendao.annotation.Generated;
 
 @Entity(indexes = { @Index("position") })
 @Data

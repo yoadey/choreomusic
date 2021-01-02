@@ -33,8 +33,33 @@
         <item name="android:background">@color/darkblue</item>
     </style>
 
+    <style name="Popup" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <!-- Title -->
+        <item name="materialAlertDialogTitleTextStyle">@style/Custom_MaterialAlertDialog.MaterialComponents.Title.Text</item>
+        <!-- Body -->
+        <item name="materialAlertDialogBodyTextStyle">@style/BodyTextAppearance.MaterialComponents.Body2</item>
+        <!-- Buttons -->
+        <item name="buttonBarPositiveButtonStyle">@style/ButtonTextStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/ButtonTextStyle</item>
+    </style>
+
+
+    <style name="Custom_MaterialAlertDialog.MaterialComponents.Title.Text" parent="@style/MaterialAlertDialog.MaterialComponents.Title.Text">
+        <item name="android:textColor">@color/lightyellow</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BodyTextAppearance.MaterialComponents.Body2" parent="@style/TextAppearance.MaterialComponents.Body2">
+        <item name="android:textColor">@color/lightyellow</item>
+    </style>
+
+    <style name="ButtonTextStyle" parent="@style/Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/lightyellow</item>
+    </style>
+
     <style name="Tabs" parent="@style/Widget.MaterialComponents.TabLayout">
-        <item name="tabTextColor">@color/lightyellow</item>
+        <item name="tabTextColor">?android:attr/textColor</item>
         <item name="tabIndicatorColor">?attr/colorAccent</item>
     </style>
 
@@ -79,7 +104,7 @@
         <item name="backgroundTint">@android:color/transparent</item>
         <item name="cornerRadius">44dp</item>
         <item name="icon">@drawable/baseline_play_arrow_24</item>
-        <item name="strokeColor">@color/lightyellow</item>
+        <item name="strokeColor">?attr/colorAccent</item>
         <item name="strokeWidth">2dp</item>
     </style>
 

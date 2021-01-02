@@ -2,9 +2,11 @@ package de.yoadey.choreomusic;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -14,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.media.MediaBrowserCompat;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,6 +30,7 @@ import androidx.core.content.FileProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -148,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
         id3Handler = new Id3TagsHandler(this, getContentResolver());
         songs = new ArrayList<>();
         songs.addAll(databaseHelper.getAllSongs());
-        startForegroundService(new Intent(getApplicationContext(), PlaybackControl.class));
+        sendCommandToService(PlaybackControl.START_ACTION);
         bindService(new Intent(this, PlaybackControl.class), playbackControlConnection, Context.BIND_AUTO_CREATE);
 
         setContentView(R.layout.activity_main);
@@ -223,6 +227,19 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
                     }
                 }
         ).attach();
+    }
+
+    @Override
+    public void onBackPressed() {
+        new MaterialAlertDialogBuilder(this, R.style.Popup)
+                .setTitle(R.string.exit_title)
+                .setMessage(R.string.exit_description)
+                .setNegativeButton(R.string.yes, (dialog, which) -> {
+                    dialog.dismiss();
+                    MainActivity.this.finish();
+                })
+                .setPositiveButton(R.string.no, (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     @Override
@@ -338,6 +355,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
         handler.post(() -> {
             if (playbackControl.getCurrentSong() != null) {
                 openFile(playbackControl.getCurrentSong().getParsedUri());
+                songChanged(playbackControl.getCurrentSong());
+                onIsPlayingChanged(playbackControl.isPlaying());
             } else {
                 SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
                 String fileUri = sharedPreferences.getString(SP_FILE_KEY, null);
@@ -352,12 +371,19 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (playbackControl != null) {
+        if (this.playbackControl != null) {
             unbindService(playbackControlConnection);
         }
         if (songsTracksAdapter != null) {
             songsTracksAdapter.onDestroy();
         }
+        sendCommandToService(PlaybackControl.STOP_ACTION);
+    }
+
+    private void sendCommandToService(String action) {
+        Intent stopIntent = new Intent(getApplicationContext(), PlaybackControl.class);
+        stopIntent.setAction(action);
+        startService(stopIntent);
     }
 
     @Override

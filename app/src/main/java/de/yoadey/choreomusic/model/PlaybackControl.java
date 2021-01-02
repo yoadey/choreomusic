@@ -1,6 +1,5 @@
 package de.yoadey.choreomusic.model;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -12,7 +11,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.Nullable;
 
@@ -42,8 +40,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     public static final String PLAYBACK_CHANNEL_ID = "PlaybackServiceForegroundServiceChannel";
     public static final int PLAYBACK_NOTIFICATION_ID = 1;
     public static final String MEDIA_SESSION_TAG = "audio_demo";
-    public static final String DOWNLOAD_CHANNEL_ID = "download_channel";
-    public static final int DOWNLOAD_NOTIFICATION_ID = 2;
+    public static final String START_ACTION = "StartService";
+    public static final String STOP_ACTION = "StopService";
     private final Handler handler = new Handler();
     private final Object threadRunningLock = new Object();
     private final Set<PlaybackListener> listeners;
@@ -91,15 +89,58 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         player = new SimpleExoPlayer.Builder(context).build();
         player.prepare();
 
+        player.addListener(new Player.EventListener() {
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                if (isPlaying) {
+                    startLoopingThread();
+                }
+                listeners.forEach(l -> l.onIsPlayingChanged(isPlaying));
+            }
+
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_ENDED && isLoopActive()) {
+                    seekTo(start);
+                }
+            }
+        });
+
+        mediaSession = new MediaSessionCompat(context, MEDIA_SESSION_TAG);
+        mediaSession.setActive(true);
+
+        mediaSessionConnector = new MediaSessionConnector(mediaSession);
+        mediaSessionConnector.setQueueNavigator(new TimelineQueueNavigator(mediaSession) {
+            @NotNull
+            @Override
+            public MediaDescriptionCompat getMediaDescription(@NotNull Player player, int windowIndex) {
+                if (currentSong == null) {
+                    return new MediaDescriptionCompat.Builder()
+                            .build();
+                }
+                return new MediaDescriptionCompat.Builder()
+                        .setMediaId(currentSong.getUri())
+                        .setTitle(currentSong.getTitle())
+                        .build();
+            }
+        });
+        mediaSessionConnector.setPlayer(player);
+    }
+
+    private void initializeNotification() {
+        if (playerNotificationManager != null) {
+            return;
+        }
         playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(
-                context,
+                getApplicationContext(),
                 PLAYBACK_CHANNEL_ID,
+                R.string.playback_channel_name,
                 R.string.playback_channel_name,
                 PLAYBACK_NOTIFICATION_ID,
                 new PlayerNotificationManager.MediaDescriptionAdapter() {
                     @NotNull
                     @Override
-                    public String getCurrentContentTitle(Player player) {
+                    public String getCurrentContentTitle(@NotNull Player player) {
                         if (currentSong == null) {
                             return "Nothing loaded";
                         }
@@ -122,59 +163,13 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
                     @Nullable
                     @Override
-                    public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
-                        return ((BitmapDrawable) context.getResources().getDrawable(R.drawable.ic_stat_name, null)).getBitmap();
-                    }
-                },
-                new PlayerNotificationManager.NotificationListener() {
-                    @Override
-                    public void onNotificationPosted(int notificationId, @NotNull Notification notification, boolean ongoing) {
-                        startForeground(notificationId, notification);
-                    }
-
-                    @Override
-                    public void onNotificationCancelled(int notificationId, boolean dismissedByUser) {
-                        stopSelf();
+                    public Bitmap getCurrentLargeIcon(@NotNull Player player, @NotNull PlayerNotificationManager.BitmapCallback callback) {
+                        return ((BitmapDrawable) getApplicationContext().getResources().getDrawable(R.drawable.ic_stat_name, null)).getBitmap();
                     }
                 }
         );
         playerNotificationManager.setPlayer(player);
-        player.addListener(new Player.EventListener() {
-            @Override
-            public void onIsPlayingChanged(boolean isPlaying) {
-                if(isPlaying) {
-                    startLoopingThread();
-                }
-                listeners.forEach(l -> l.onIsPlayingChanged(isPlaying));
-            }
-
-            @Override
-            public void onPlaybackStateChanged(int state) {
-                if(state == Player.STATE_ENDED && isLoopActive()) {
-                    seekTo(start);
-                }
-            }
-        });
-
-        mediaSession = new MediaSessionCompat(context, MEDIA_SESSION_TAG);
-        mediaSession.setActive(true);
         playerNotificationManager.setMediaSessionToken(mediaSession.getSessionToken());
-
-        mediaSessionConnector = new MediaSessionConnector(mediaSession);
-        mediaSessionConnector.setQueueNavigator(new TimelineQueueNavigator(mediaSession) {
-            @Override
-            public MediaDescriptionCompat getMediaDescription(@NotNull Player player, int windowIndex) {
-                if (currentSong == null) {
-                    return new MediaDescriptionCompat.Builder()
-                            .build();
-                }
-                return new MediaDescriptionCompat.Builder()
-                        .setMediaId(currentSong.getUri())
-                        .setTitle(currentSong.getTitle())
-                        .build();
-            }
-        });
-        mediaSessionConnector.setPlayer(player);
     }
 
     @Override
@@ -190,7 +185,15 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_STICKY;
+        if (Objects.equals(intent.getAction(), START_ACTION)) {
+            initializeNotification();
+        } else if (Objects.equals(intent.getAction(), STOP_ACTION)) {
+
+            stopForeground(true);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        return START_NOT_STICKY;
     }
 
     public void play() {
@@ -204,7 +207,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     public void stop() {
-        player.stop();
+        player.pause();
+        seekTo(0);
     }
 
     public boolean isLoopActive() {

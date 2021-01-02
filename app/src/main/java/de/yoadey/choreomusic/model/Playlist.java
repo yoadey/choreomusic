@@ -34,13 +34,6 @@ public class Playlist {
         listeners.forEach(l -> l.notifyPlaylistChanged(singletonList(track), emptyList(), getTracks()));
     }
 
-    public void addTracks(List<Track> tracks) {
-        List<Track> newTracks = tracks.stream().filter(t -> !tracks.contains(t)).collect(Collectors.toList());
-        tracks.addAll(newTracks);
-        tracks.sort((o1, o2) -> Long.compare(o1.getPosition(), o2.getPosition()));
-        listeners.forEach(l -> l.notifyPlaylistChanged(newTracks, emptyList(), getTracks()));
-    }
-
     public void updateTrack(Track track) {
         listeners.forEach(l -> l.notifyPlaylistChanged(singletonList(track), emptyList(), getTracks()));
     }

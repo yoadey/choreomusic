@@ -17,4 +17,8 @@
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
     <string name="playback_channel_name">Choreo Music</string>
+    <string name="exit_title">Exit</string>
+    <string name="exit_description">Are you sure you want to exit?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
