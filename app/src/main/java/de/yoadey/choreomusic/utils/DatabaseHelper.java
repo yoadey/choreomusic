@@ -45,10 +45,9 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
 
     public Track getTrack(int position) {
         TrackDao trackDao = daoSession.getTrackDao();
-        Track track = trackDao.queryBuilder() //
+        return trackDao.queryBuilder() //
                 .where(TrackDao.Properties.Position.eq(position), TrackDao.Properties.FileId.eq(currentFile)) //
                 .unique();
-        return track;
     }
 
     public List<Track> getAllTracks() {
@@ -84,6 +83,11 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
     public void saveSong(Song song) {
         SongDao songDao = daoSession.getSongDao();
         songDao.save(song);
+        TrackDao trackDao = daoSession.getTrackDao();
+        song.getTracks().forEach(track -> {
+            track.setFileId(song.getId());
+            trackDao.save(track);
+        });
     }
 
     public void saveTracks(List<Track> tracks) {
@@ -96,13 +100,24 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
     }
 
     @Override
-    public void songChanged(Song newSong) {
-        this.currentFile = newSong.getId();
+    public void onSongChanged(Song newSong) {
+        if(newSong == null) {
+            this.currentFile = -1L;
+        } else {
+            this.currentFile = newSong.getId();
+        }
     }
 
     @Override
-    public void notifyPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
+    public void onPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
         newTracks.forEach(this::saveTrack);
         deletedTracks.forEach(this::deleteTrack);
+    }
+
+    public void deleteSong(Song song) {
+        TrackDao trackDao = daoSession.getTrackDao();
+        song.getTracks().forEach(trackDao::delete);
+        SongDao songDao = daoSession.getSongDao();
+        songDao.delete(song);
     }
 }

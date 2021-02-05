@@ -31,11 +31,11 @@ public class Playlist {
         }
         tracks.add(track);
         tracks.sort((o1, o2) -> Long.compare(o1.getPosition(), o2.getPosition()));
-        listeners.forEach(l -> l.notifyPlaylistChanged(singletonList(track), emptyList(), getTracks()));
+        listeners.forEach(l -> l.onPlaylistChanged(singletonList(track), emptyList(), getTracks()));
     }
 
     public void updateTrack(Track track) {
-        listeners.forEach(l -> l.notifyPlaylistChanged(singletonList(track), emptyList(), getTracks()));
+        listeners.forEach(l -> l.onPlaylistChanged(singletonList(track), emptyList(), getTracks()));
     }
 
     public void deleteItem(Track track) {
@@ -47,7 +47,7 @@ public class Playlist {
 
     public void deleteItem(int i) {
         Track track = tracks.remove(i);
-        listeners.forEach(l -> l.notifyPlaylistChanged(emptyList(), singletonList(track), getTracks()));
+        listeners.forEach(l -> l.onPlaylistChanged(emptyList(), singletonList(track), getTracks()));
     }
 
     public void addPlaylistListener(PlaylistListener listener) {
@@ -86,10 +86,10 @@ public class Playlist {
         this.tracks.clear();
         this.tracks.addAll(tracks);
         this.tracks.sort((o1, o2) -> Long.compare(o1.getPosition(), o2.getPosition()));
-        if (this.tracks.isEmpty() || this.tracks.get(0).getPosition() > 0) {
+        if (this.tracks.isEmpty() || this.tracks.stream().noneMatch(track -> track.getPosition() == 0)) {
             this.tracks.add(0, new Track(0, "Start"));
         }
-        if (this.tracks.get(this.tracks.size() - 1).getPosition() < Integer.MAX_VALUE) {
+        if (this.tracks.stream().noneMatch(track -> track.getPosition() == Integer.MAX_VALUE)) {
             this.tracks.add(new Track(Integer.MAX_VALUE, "End"));
         }
         // calculate real differences
@@ -99,10 +99,10 @@ public class Playlist {
         List<Track> oldTracksList = oldTracks.stream() //
                 .filter(t -> !this.tracks.contains(t)) //
                 .collect(Collectors.toList());
-        listeners.forEach(l -> l.notifyPlaylistChanged(newTracks, oldTracksList, getTracks()));
+        listeners.forEach(l -> l.onPlaylistChanged(newTracks, oldTracksList, getTracks()));
     }
 
     public interface PlaylistListener {
-        void notifyPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter);
+        void onPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter);
     }
 }

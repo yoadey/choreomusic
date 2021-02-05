@@ -31,41 +31,21 @@ import java.util.Map;
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Playlist;
-import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.ui.popups.EditDialogFragment;
 
-public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<TrackViewAdapter.TrackViewHolder> implements Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
+public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<TrackViewAdapter.TrackViewHolder>
+        implements ServiceConnection, Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
 
-    private PlaybackControl playbackControl;
-    private Playlist playlist;
     private final Context context;
     private final Map<Track, ConstraintLayout> trackToLayout;
+    private PlaybackControl playbackControl;
+    private Playlist playlist;
+
     private MaterialButton loopA;
     private MaterialButton loopB;
     private ConstraintLayout currentTrack;
     private RecyclerView recyclerView;
-
-    private final ServiceConnection playbackControlConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            playbackControl = ((PlaybackControl.LocalBinder) iBinder).getInstance();
-            playbackControl.addPlaybackListener(TrackViewAdapter.this);
-            playlist = playbackControl.getPlaylist();
-            playlist.addPlaylistListener(TrackViewAdapter.this);
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            playbackControl.deletePlaybackListener(TrackViewAdapter.this);
-            playlist = playbackControl.getPlaylist();
-            playlist.deletePlaylistListener(TrackViewAdapter.this);
-            playlist = null;
-            playbackControl = null;
-            notifyDataSetChanged();
-        }
-    };
 
     public TrackViewAdapter(Context context) {
         this.context = context;
@@ -76,8 +56,8 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
         super.onAttachedToRecyclerView(recyclerView);
-        if(playbackControl == null) {
-            context.bindService(new Intent(context, PlaybackControl.class), playbackControlConnection, Context.BIND_AUTO_CREATE);
+        if (playbackControl == null) {
+            context.bindService(new Intent(context, PlaybackControl.class), this, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -101,15 +81,18 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         layout.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
             MenuItem editItem = menu.add(R.string.track_edit);
             editItem.setOnMenuItemClickListener(item -> {
-                EditDialogFragment dialogFragment = new EditDialogFragment(playlist, track);
+                EditDialogFragment dialogFragment = new EditDialogFragment(playbackControl, playlist, track);
                 dialogFragment.show(((FragmentActivity) context).getSupportFragmentManager(), "OpenPopup");
                 return true;
             });
-            MenuItem deleteItem = menu.add(R.string.track_delete);
-            deleteItem.setOnMenuItemClickListener(item -> {
-                playlist.deleteItem(track);
-                return true;
-            });
+            // Don't delete the start item, we always want to have at least one track
+            if (i > 0) {
+                MenuItem deleteItem = menu.add(R.string.delete);
+                deleteItem.setOnMenuItemClickListener(item -> {
+                    playlist.deleteItem(track);
+                    return true;
+                });
+            }
         });
 
         trackToLayout.put(track, layout);
@@ -135,7 +118,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         time.setText(timeText);
 
         MaterialButton loopA = layout.findViewById(R.id.trackLoopA);
-        if (playbackControl.getStart() == track) {
+        if (playbackControl.getLoopStart() == track) {
             activateLoopA(nextTrack, loopB);
         } else {
             loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
@@ -143,7 +126,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         loopA.setOnClickListener(view -> loopA(track, loopA));
 
         MaterialButton loopB = layout.findViewById(R.id.trackLoopB);
-        if (playbackControl.getEnd() == nextTrack) {
+        if (playbackControl.getLoopEnd() == nextTrack) {
             activateLoopB(nextTrack, loopB);
         } else {
             loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
@@ -151,11 +134,30 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         loopB.setOnClickListener(view -> loopB(nextTrack, loopB));
     }
 
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        playbackControl = ((PlaybackControl.LocalBinder) iBinder).getInstance();
+        playbackControl.addPlaybackListener(TrackViewAdapter.this);
+        playlist = playbackControl.getPlaylist();
+        playlist.addPlaylistListener(TrackViewAdapter.this);
+        notifyDataSetChanged();
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        playbackControl.deletePlaybackListener(TrackViewAdapter.this);
+        playlist = playbackControl.getPlaylist();
+        playlist.deletePlaylistListener(TrackViewAdapter.this);
+        playlist = null;
+        playbackControl = null;
+        notifyDataSetChanged();
+    }
+
     private void loopA(Track track, MaterialButton loopA) {
-        if (track == playbackControl.getStart()) {
+        if (track == playbackControl.getLoopStart()) {
             deactivateLoopA();
         } else {
-            if (playbackControl.getEnd() != null && playbackControl.getEnd().getPosition() <= track.getPosition()) {
+            if (playbackControl.getLoopEnd() != null && playbackControl.getLoopEnd().getPosition() <= track.getPosition()) {
                 deactivateLoopB();
             }
             activateLoopA(track, loopA);
@@ -163,10 +165,10 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     }
 
     private void loopB(Track nextTrack, MaterialButton loopB) {
-        if (nextTrack == playbackControl.getEnd()) {
+        if (nextTrack == playbackControl.getLoopEnd()) {
             deactivateLoopB();
         } else {
-            if (playbackControl.getStart() != null && playbackControl.getStart().getPosition() >= nextTrack.getPosition()) {
+            if (playbackControl.getLoopStart() != null && playbackControl.getLoopStart().getPosition() >= nextTrack.getPosition()) {
                 deactivateLoopA();
             }
             activateLoopB(nextTrack, loopB);
@@ -174,7 +176,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     }
 
     private void activateLoopA(Track track, MaterialButton loopA) {
-        playbackControl.setStart(track);
+        playbackControl.setLoopStart(track);
         loopA.setBackgroundColor(getColor(R.attr.loopASelectedColor));
         if (this.loopA != null) {
             this.loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
@@ -183,13 +185,13 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     }
 
     private void deactivateLoopA() {
-        playbackControl.setStart(null);
+        playbackControl.setLoopStart(null);
         this.loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
         this.loopA = null;
     }
 
     private void activateLoopB(Track nextTrack, MaterialButton loopB) {
-        playbackControl.setEnd(nextTrack);
+        playbackControl.setLoopEnd(nextTrack);
         loopB.setBackgroundColor(getColor(R.attr.loopBSelectedColor));
         if (this.loopB != null) {
             this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
@@ -198,7 +200,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     }
 
     private void deactivateLoopB() {
-        playbackControl.setEnd(null);
+        playbackControl.setLoopEnd(null);
         this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
         this.loopB = null;
     }
@@ -218,24 +220,20 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     @Override
     public int getItemCount() {
-        if(playlist == null) {
+        if (playlist == null) {
             return 0;
         }
         return playlist.getTracks().size() - 1;
     }
 
     @Override
-    public void notifyPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
+    public void onPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
         trackToLayout.clear();
         notifyDataSetChanged();
     }
 
     @Override
-    public void songChanged(Song newSong) {
-    }
-
-    @Override
-    public void trackChanged(Track newTrack) {
+    public void onTrackChanged(Track newTrack) {
         if (this.currentTrack != null) {
             this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackUnselectedColor));
         }
@@ -244,13 +242,13 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
             this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
         }
         int position = playlist.getTracks().indexOf(newTrack);
-        position = Math.max(0, Math.min(getItemCount()-1, position));
+        position = Math.max(0, Math.min(getItemCount() - 1, position));
         recyclerView.scrollToPosition(position);
     }
 
     public void onDestroy() {
         if (playbackControl != null) {
-            context.unbindService(playbackControlConnection);
+            context.unbindService(this);
         }
     }
 

@@ -2,7 +2,7 @@
     <string name="app_name">Choreo Music Helper</string>
     <string name="app_description">Choreo Music Helper</string>
     <string name="contact_group">Contact</string>
-    <string name="action_export">Share...</string>
+    <string name="action_share">Share…</string>
     <string name="action_open">Open</string>
     <string name="action_reload">Reload</string>
     <string name="action_settings">Settings</string>
@@ -10,15 +10,17 @@
     <string name="songs">Songs</string>
     <string name="tracks">Tracks</string>
     <string name="track_edit">Edit</string>
-    <string name="track_delete">Delete</string>
+    <string name="delete">Delete</string>
     <string name="prepost_title">Loop</string>
     <string name="prepost_prelabel">Lead-in time:</string>
     <string name="prepost_postlabel">Lead-out time:</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="playback_channel_name">Choreo Music</string>
     <string name="exit_title">Exit</string>
     <string name="exit_description">Are you sure you want to exit?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="action_save">Save as…</string>
+    <string name="edit_track">Edit track</string>
 </resources>

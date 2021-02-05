@@ -10,8 +10,11 @@
 
     <!-- Settings, should always be in the overflow -->
     <item
-        android:id="@+id/action_export"
-        android:title="@string/action_export" />
+        android:id="@+id/action_share"
+        android:title="@string/action_share" />
+    <item
+        android:id="@+id/action_save"
+        android:title="@string/action_save" />
     <item
         android:id="@+id/action_reload"
         android:title="@string/action_reload" />

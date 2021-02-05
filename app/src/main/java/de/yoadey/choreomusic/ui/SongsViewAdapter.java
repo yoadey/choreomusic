@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.IBinder;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Playlist;
@@ -75,6 +77,15 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
 
         ConstraintLayout layout = (ConstraintLayout) viewHolder.itemView;
         layout.setOnClickListener(view -> playbackControl.openSong(song));
+        layout.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
+            MenuItem deleteItem = menu.add(R.string.delete);
+            deleteItem.setOnMenuItemClickListener(item -> {
+                songs.remove(song);
+                ((MainActivity) context).getDatabaseHelper().deleteSong(song);
+                playbackControl.openSong(null);
+                return true;
+            });
+        });
 
         if (playbackControl != null && playbackControl.getCurrentSong() == song) {
             layout.setBackgroundColor(Utils.getColor(context, R.style.loop, R.attr.loopTrackSelectedColor));
@@ -99,17 +110,17 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
     }
 
     @Override
-    public void notifyPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
+    public void onPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
         notifyDataSetChanged();
     }
 
     @Override
-    public void songChanged(Song newSong) {
+    public void onSongChanged(Song newSong) {
         notifyDataSetChanged();
     }
 
     @Override
-    public void trackChanged(Track newTrack) {
+    public void onTrackChanged(Track newTrack) {
     }
 
     public void onDestroy() {

@@ -7,37 +7,35 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.provider.OpenableColumns;
-import android.support.v4.media.MediaDescriptionCompat;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.ColorInt;
-import androidx.core.app.NotificationCompat;
-import androidx.media.session.MediaButtonReceiver;
 
-import de.yoadey.choreomusic.R;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+/**
+ * Some static helper methods, which don't really belong into a specific other class
+ */
 public class Utils {
+
+    private static final int EOF = -1;
+    private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
     /**
      * Returns the real filename for a given uri
      *
      * @param contentResolver the contentResolver
-     * @param uri the uri for which the filename should be searched
+     * @param uri             the uri for which the filename should be searched
      * @return the filename of the file behind the uri
      */
     public static String getFileName(ContentResolver contentResolver, Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
-            Cursor cursor = contentResolver.query(uri, null, null, null, null);
-            try {
+            try (Cursor cursor = contentResolver.query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
                     result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
                 }
-            } finally {
-                cursor.close();
             }
         }
         if (result == null) {
@@ -64,28 +62,11 @@ public class Utils {
         return Color.TRANSPARENT;
     }
 
-    /**
-     * Build a notification using the information from the given media session. Makes heavy use
-     * of {@link MediaMetadataCompat#getDescription()} to extract the appropriate information.
-     * @param context Context used to construct the notification.
-     * @param mediaSession Media session to get information.
-     * @return A pre-built notification with information from the given media session.
-     */
-    public static NotificationCompat.Builder from(
-            Context context, MediaSessionCompat mediaSession, String channelId) {
-        MediaControllerCompat controller = mediaSession.getController();
-        MediaMetadataCompat mediaMetadata = controller.getMetadata();
-        MediaDescriptionCompat description = mediaMetadata.getDescription();
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-        builder.setContentTitle(description.getTitle())
-                .setContentText(description.getSubtitle())
-                .setSubText(description.getDescription())
-                .setLargeIcon(description.getIconBitmap())
-                .setContentIntent(controller.getSessionActivity())
-                .setDeleteIntent(
-                        MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
-        return builder;
+    public static void copyStream(InputStream in, OutputStream out) throws IOException {
+        int n;
+        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+        while (EOF != (n = in.read(buffer))) {
+            out.write(buffer, 0, n);
+        }
     }
 }

@@ -3,9 +3,7 @@
     package="de.yoadey.choreomusic">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!--<permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />-->
-
-
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -29,22 +27,20 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+<!--            Explicitely disable intent for associating app with the mime type, as this path cannot be restored on next open -->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.VIEW" />-->
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
 
-                <data android:scheme="file" />
-                <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\\.mp3" />
-                <data android:host="*" />
-            </intent-filter>
+<!--                <data android:scheme="content"-->
+<!--                      android:mimeType="audio/mpeg"/>-->
+<!--            </intent-filter>-->
 
         </activity>
         <activity
             android:name=".ui.AboutActivity"
-            android:theme="@style/Theme.ChoreoMusicHelper.NoActionBar"></activity>
+            android:theme="@style/Theme.ChoreoMusicHelper.NoActionBar"/>
 
 
         <provider
@@ -55,9 +51,8 @@
             <!-- resource file to create -->
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths"/>
         </provider>
     </application>
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
 </manifest>

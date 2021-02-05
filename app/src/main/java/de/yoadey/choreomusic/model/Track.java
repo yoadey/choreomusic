@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Entity(indexes = { @Index("position") })
 @Data
-public class Track {
+public class Track implements Comparable<Track> {
 
     @Id
     private Long id;
@@ -71,5 +71,10 @@ public class Track {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    @Override
+    public int compareTo(Track o) {
+        return Long.compare(this.position, o.position);
     }
 }
