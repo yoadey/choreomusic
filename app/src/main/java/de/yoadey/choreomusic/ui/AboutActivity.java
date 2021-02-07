@@ -23,10 +23,12 @@ public class AboutActivity extends AppCompatActivity {
 
         View aboutView = new AboutPage(getApplicationContext())
                 .isRTL(false)
+                .setImage(R.drawable.ic_launcher_foreground)
                 .setDescription(getString(R.string.app_description))
+                .setDescription(getString(R.string.about_description))
                 .addGroup(getString(R.string.contact_group))
-                .addEmail("contact@yoadey.de", "Email")
-                .addGroup(getString(R.string.about_contact_us))
+                .addEmail("info@yoadey.de")
+                .addGitHub("https://github.com/yoadey/choreomusic")
                 .addItem(versionElement)
                 .create();
         LinearLayout layout = findViewById(R.id.about_layout);

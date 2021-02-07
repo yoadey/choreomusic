@@ -137,9 +137,13 @@
         <item name="loopTrackSelectedColor">@color/lightgrey</item>
         <item name="loopTrackUnselectedColor">@android:color/transparent</item>
         <item name="loopASelectedColor">@color/orange_main</item>
-        <item name="loopAUnselectedColor">@color/lightorange</item>
+        <item name="loopASelectedTextColor">@color/lightyellow</item>
+        <item name="loopAUnselectedColor">@color/lightyellow</item>
+        <item name="loopAUnselectedTextColor">@color/black</item>
         <item name="loopBSelectedColor">@color/orange_main</item>
-        <item name="loopBUnselectedColor">@color/lightorange</item>
+        <item name="loopBSelectedTextColor">@color/lightyellow</item>
+        <item name="loopBUnselectedColor">@color/lightyellow</item>
+        <item name="loopBUnselectedTextColor">@color/black</item>
     </style>
 
     <style name="Slider">

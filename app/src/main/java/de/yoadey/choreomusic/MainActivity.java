@@ -25,6 +25,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
@@ -402,6 +403,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
 //                return true;
         } else if (item.getItemId() == R.id.action_about) {
             startActivity(new Intent(this, AboutActivity.class));
+            return true;
+        } else if (item.getItemId() == R.id.action_licenses) {
+            startActivity(new Intent(this, OssLicensesMenuActivity.class));
             return true;
         } else {
             return super.onOptionsItemSelected(item);

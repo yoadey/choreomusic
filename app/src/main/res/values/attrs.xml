@@ -4,8 +4,12 @@
     <attr name="loopTrackSelectedColor" format="reference" />
     <attr name="loopTrackUnselectedColor" format="reference" />
     <attr name="loopASelectedColor" format="reference" />
+    <attr name="loopASelectedTextColor" format="reference" />
     <attr name="loopAUnselectedColor" format="reference" />
+    <attr name="loopAUnselectedTextColor" format="reference" />
     <attr name="loopBSelectedColor" format="reference" />
+    <attr name="loopBSelectedTextColor" format="reference" />
     <attr name="loopBUnselectedColor" format="reference" />
+    <attr name="loopBUnselectedTextColor" format="reference" />
 
 </resources>

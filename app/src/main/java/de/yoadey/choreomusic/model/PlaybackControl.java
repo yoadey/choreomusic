@@ -2,7 +2,6 @@ package de.yoadey.choreomusic.model;
 
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -43,7 +42,6 @@ import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.utils.Utils;
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Service to handle the player and manage the current state, independent from the UI.

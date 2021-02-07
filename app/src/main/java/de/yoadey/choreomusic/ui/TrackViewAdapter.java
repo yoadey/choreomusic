@@ -121,6 +121,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         if (playbackControl.getLoopStart() == track) {
             activateLoopA(nextTrack, loopB);
         } else {
+            loopA.setTextColor(getColor(R.attr.loopAUnselectedTextColor));
             loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
         }
         loopA.setOnClickListener(view -> loopA(track, loopA));
@@ -129,6 +130,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         if (playbackControl.getLoopEnd() == nextTrack) {
             activateLoopB(nextTrack, loopB);
         } else {
+            loopB.setTextColor(getColor(R.attr.loopBUnselectedTextColor));
             loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
         }
         loopB.setOnClickListener(view -> loopB(nextTrack, loopB));
@@ -177,8 +179,10 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     private void activateLoopA(Track track, MaterialButton loopA) {
         playbackControl.setLoopStart(track);
+        loopA.setTextColor(getColor(R.attr.loopASelectedTextColor));
         loopA.setBackgroundColor(getColor(R.attr.loopASelectedColor));
         if (this.loopA != null) {
+            this.loopA.setTextColor(getColor(R.attr.loopAUnselectedTextColor));
             this.loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
         }
         this.loopA = loopA;
@@ -186,21 +190,25 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     private void deactivateLoopA() {
         playbackControl.setLoopStart(null);
+        this.loopA.setTextColor(getColor(R.attr.loopAUnselectedTextColor));
         this.loopA.setBackgroundColor(getColor(R.attr.loopAUnselectedColor));
         this.loopA = null;
     }
 
     private void activateLoopB(Track nextTrack, MaterialButton loopB) {
         playbackControl.setLoopEnd(nextTrack);
+        loopB.setTextColor(getColor(R.attr.loopBSelectedTextColor));
         loopB.setBackgroundColor(getColor(R.attr.loopBSelectedColor));
         if (this.loopB != null) {
-            this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
+            this.loopB.setTextColor(getColor(R.attr.loopBUnselectedTextColor));
+            this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedTextColor));
         }
         this.loopB = loopB;
     }
 
     private void deactivateLoopB() {
         playbackControl.setLoopEnd(null);
+        this.loopB.setTextColor(getColor(R.attr.loopBUnselectedTextColor));
         this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
         this.loopB = null;
     }
