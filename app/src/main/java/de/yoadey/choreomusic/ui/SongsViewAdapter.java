@@ -80,6 +80,8 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
         layout.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
             MenuItem deleteItem = menu.add(R.string.delete);
             deleteItem.setOnMenuItemClickListener(item -> {
+
+
                 songs.remove(song);
                 ((MainActivity) context).getDatabaseHelper().deleteSong(song);
                 playbackControl.openSong(null);

@@ -179,11 +179,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
                 openFile(file);
             } else if (requestCode == SAVE_FILE_CODE) {
                 File localFile = playbackControl.getLocalFile();
-                try (Id3TagsHandler id3Handler = new Id3TagsHandler(localFile);
-                     InputStream in = id3Handler.getInputStream();
-                     OutputStream out = contentResolver.openOutputStream(file)) {
+                try (Id3TagsHandler id3Handler = new Id3TagsHandler(localFile)) {
                     id3Handler.saveChapters(playlist.getTracks());
-                    Utils.copyStream(in, out);
+                    try(InputStream in = id3Handler.getInputStream();
+                        OutputStream out = contentResolver.openOutputStream(file)) {
+                        Utils.copyStream(in, out);
+                    }
                 } catch (IOException e) {
                     Log.w(MainActivity.class.getName(), "Error during saving file: ", e);
                 }
@@ -470,8 +471,15 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
 
     @SuppressLint("DefaultLocale")
     private void updateSlider() {
-        long position = playbackControl.getCurrentPosition();
-        long length = playbackControl.getCurrentSong().getLength();
+        long position;
+        long length;
+        if(playbackControl.getCurrentSong() != null) {
+            position = playbackControl.getCurrentPosition();
+            length = playbackControl.getCurrentSong().getLength();
+        } else {
+            position = 0;
+            length = 100;
+        }
         WaveformSeekBar slider = findViewById(R.id.waveformSeekBar);
         int progress = (int) (position * 100 / length);
         progress = Math.min(Math.max(0, progress), 100);
