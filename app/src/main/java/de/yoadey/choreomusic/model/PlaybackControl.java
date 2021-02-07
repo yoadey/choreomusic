@@ -286,14 +286,19 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if(localFile != null) {
             return localFile;
         }
+        localFile = getLocalFile(currentSong.getParsedUri());
+        return localFile;
+    }
+
+    @NotNull
+    public File getLocalFile(Uri uri) {
         File filesDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC);
         if (filesDir == null) {
             filesDir = getFilesDir();
         }
 
-        Uri uri = currentSong.getParsedUri();
         String fileName = Utils.getFileName(getContentResolver(), uri);
-        localFile = new File(filesDir, fileName);
+        File localFile = new File(filesDir, fileName);
         localFile.deleteOnExit();
         try (InputStream is = getContentResolver().openInputStream(uri);
              OutputStream os = new FileOutputStream(localFile)) {

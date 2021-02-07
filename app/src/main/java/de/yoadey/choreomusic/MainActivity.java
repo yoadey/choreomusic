@@ -241,11 +241,13 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         if (isNew) {
             song = new Song();
             song.setUri(file.toString());
-            File localFile = playbackControl.getLocalFile();
+            File localFile = playbackControl.getLocalFile(file);
             try (Id3TagsHandler id3Handler = new Id3TagsHandler(localFile)) {
                 song.setTitle(id3Handler.getTitle());
                 song.setLength(id3Handler.getLength());
                 song.setTracks(id3Handler.readChapters());
+            } finally {
+                localFile.delete();
             }
         }
         song.setLastUsed(new Date());
