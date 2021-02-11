@@ -283,7 +283,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     @NotNull
     public File getLocalFile() {
-        if(localFile != null) {
+        if(localFile != null && localFile.exists()) {
             return localFile;
         }
         localFile = getLocalFile(currentSong.getParsedUri());

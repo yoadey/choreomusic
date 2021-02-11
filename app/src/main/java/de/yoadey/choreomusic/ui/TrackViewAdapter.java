@@ -201,7 +201,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         loopB.setBackgroundColor(getColor(R.attr.loopBSelectedColor));
         if (this.loopB != null) {
             this.loopB.setTextColor(getColor(R.attr.loopBUnselectedTextColor));
-            this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedTextColor));
+            this.loopB.setBackgroundColor(getColor(R.attr.loopBUnselectedColor));
         }
         this.loopB = loopB;
     }

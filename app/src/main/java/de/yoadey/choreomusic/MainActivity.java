@@ -292,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
 
     private void initializeWaveform(WaveformSeekBar waveformSeekBar) {
         ifPlaybackControlInitialized(() -> {
+            waveformSeekBar.setMaxProgress(playbackControl.getCurrentSong().getLength());
             File localFile = playbackControl.getLocalFile();
             try {
                 waveformSeekBar.setSampleFrom(localFile);
@@ -357,10 +358,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         dialogFragment.show(getSupportFragmentManager(), "OpenPopup");
     }
 
-    private void onSliderChanged(WaveformSeekBar seekbar, Integer progressPercent, Boolean fromUser) {
+    private void onSliderChanged(WaveformSeekBar seekbar, Integer progress, Boolean fromUser) {
         ifPlaybackControlInitialized(() -> {
             if (fromUser) {
-                long progress = playbackControl.getCurrentSong().getLength() * progressPercent / 100;
                 TextView time = findViewById(R.id.time);
                 time.setText(String.format(Locale.GERMAN, "%02d:%02d", (int) (progress / 60000), (int) (progress / 1000 % 60)));
                 playbackControl.seekTo((int) progress);
@@ -481,9 +481,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
             length = 100;
         }
         WaveformSeekBar slider = findViewById(R.id.waveformSeekBar);
-        int progress = (int) (position * 100 / length);
-        progress = Math.min(Math.max(0, progress), 100);
-        slider.setProgress(progress);
+        slider.setProgress((int) position);
         TextView time = findViewById(R.id.time);
         time.setText(String.format("%02d:%02d", position / 60000, position / 1000 % 60));
     }
