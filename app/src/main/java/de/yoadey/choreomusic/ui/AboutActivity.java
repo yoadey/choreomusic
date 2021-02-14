@@ -1,5 +1,7 @@
 package de.yoadey.choreomusic.ui;
 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -17,11 +19,16 @@ public class AboutActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Element versionElement = new Element();
-        versionElement.setTitle("Version 1.0.0");
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            versionElement.setTitle("Version " + pInfo.versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
         setContentView(R.layout.activity_about);
 
-        View aboutView = new AboutPage(getApplicationContext())
+        View aboutView = new AboutPage(this)
                 .isRTL(false)
                 .setImage(R.drawable.ic_launcher_foreground)
                 .setDescription(getString(R.string.app_description))

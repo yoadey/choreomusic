@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+release
+libs
+.idea

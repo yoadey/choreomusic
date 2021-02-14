@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         setSupportActionBar(toolbar);
 
         WaveformSeekBar waveformSeekBar = findViewById(R.id.waveformSeekBar);
-        waveformSeekBar.setSample(new int[] {0});
+        waveformSeekBar.setSample(new int[]{0});
         handler.postDelayed(() -> initializeWaveform(waveformSeekBar), 10);
         waveformSeekBar.setOnProgressChanged(this::onSliderChanged);
 
@@ -181,8 +181,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
                 File localFile = playbackControl.getLocalFile();
                 try (Id3TagsHandler id3Handler = new Id3TagsHandler(localFile)) {
                     id3Handler.saveChapters(playlist.getTracks());
-                    try(InputStream in = id3Handler.getInputStream();
-                        OutputStream out = contentResolver.openOutputStream(file)) {
+                    try (InputStream in = id3Handler.getInputStream();
+                         OutputStream out = contentResolver.openOutputStream(file)) {
                         Utils.copyStream(in, out);
                     }
                 } catch (IOException e) {
@@ -248,7 +248,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
                 song.setLength(id3Handler.getLength());
                 song.setTracks(id3Handler.readChapters());
             } finally {
-                localFile.delete();
+                if(!localFile.delete()) {
+                    Log.w("MainActivity", "Could not delete temporary file");
+                }
             }
         }
         song.setLastUsed(new Date());
@@ -296,8 +298,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
             File localFile = playbackControl.getLocalFile();
             try {
                 waveformSeekBar.setSampleFrom(localFile);
-            } catch(Exception e) {
-                waveformSeekBar.setSample(new int[] {1});
+            } catch (Exception e) {
+                waveformSeekBar.setSample(new int[]{1});
             }
         });
     }
@@ -362,8 +364,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         ifPlaybackControlInitialized(() -> {
             if (fromUser) {
                 TextView time = findViewById(R.id.time);
-                time.setText(String.format(Locale.GERMAN, "%02d:%02d", (int) (progress / 60000), (int) (progress / 1000 % 60)));
-                playbackControl.seekTo((int) progress);
+                time.setText(String.format(Locale.GERMAN, "%02d:%02d", progress / 60000, progress / 1000 % 60));
+                playbackControl.seekTo(progress);
             }
         });
     }
@@ -396,10 +398,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
             saveFile();
             return true;
         } else if (item.getItemId() == R.id.action_reload) {
-            try (Id3TagsHandler id3Handler = new Id3TagsHandler(playbackControl.getLocalFile())) {
-                List<Track> tracks = id3Handler.readChapters();
-                playlist.reset(tracks);
-            }
+            ifPlaybackControlInitialized(() -> {
+                try (Id3TagsHandler id3Handler = new Id3TagsHandler(playbackControl.getLocalFile())) {
+                    List<Track> tracks = id3Handler.readChapters();
+                    playlist.reset(tracks);
+                }
+            });
             return true;
 //      } else if (item.getItemId() == R.id.action_settings) {
 //                startActivity(new Intent(this, SettingsActivity.class));
@@ -416,30 +420,34 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
     }
 
     private void saveAndShareFile() {
-        try (Id3TagsHandler id3Handler = new Id3TagsHandler(playbackControl.getLocalFile())) {
-            id3Handler.saveChapters(playlist.getTracks());
+        ifPlaybackControlInitialized(() -> {
+            try (Id3TagsHandler id3Handler = new Id3TagsHandler(playbackControl.getLocalFile())) {
+                id3Handler.saveChapters(playlist.getTracks());
 
-            Uri songUri = FileProvider.getUriForFile(this, "de.yoadey.choreomusic.provider",
-                    playbackControl.getLocalFile());
+                Uri songUri = FileProvider.getUriForFile(this, "de.yoadey.choreomusic.provider",
+                        playbackControl.getLocalFile());
 
-            Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-            intentShareFile.setType("audio/mpeg");
-            intentShareFile.putExtra(Intent.EXTRA_STREAM, songUri);
-            intentShareFile.putExtra(Intent.EXTRA_SUBJECT, "Sharing File...");
-            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+                Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+                intentShareFile.setType("audio/mpeg");
+                intentShareFile.putExtra(Intent.EXTRA_STREAM, songUri);
+                intentShareFile.putExtra(Intent.EXTRA_SUBJECT, "Sharing File...");
+                intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
 
-            startActivity(Intent.createChooser(intentShareFile, "Share File"));
-        }
+                startActivity(Intent.createChooser(intentShareFile, "Share File"));
+            }
+        });
     }
 
     private void saveFile() {
-        String filename = Utils.getFileName(getContentResolver(), playbackControl.getCurrentSong().getParsedUri());
+        ifPlaybackControlInitialized(() -> {
+            String filename = Utils.getFileName(getContentResolver(), playbackControl.getCurrentSong().getParsedUri());
 
-        Intent intentSaveFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intentSaveFile.setType("audio/mpeg");
-        intentSaveFile.putExtra(Intent.EXTRA_TITLE, filename);
+            Intent intentSaveFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intentSaveFile.setType("audio/mpeg");
+            intentSaveFile.putExtra(Intent.EXTRA_TITLE, filename);
 
-        startActivityForResult(intentSaveFile, SAVE_FILE_CODE);
+            startActivityForResult(intentSaveFile, SAVE_FILE_CODE);
+        });
     }
 
     /**
@@ -472,13 +480,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
     @SuppressLint("DefaultLocale")
     private void updateSlider() {
         long position;
-        long length;
-        if(playbackControl.getCurrentSong() != null) {
+        if (playbackControl.getCurrentSong() != null) {
             position = playbackControl.getCurrentPosition();
-            length = playbackControl.getCurrentSong().getLength();
         } else {
             position = 0;
-            length = 100;
         }
         WaveformSeekBar slider = findViewById(R.id.waveformSeekBar);
         slider.setProgress((int) position);
@@ -496,7 +501,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
     public void onSongChanged(Song newSong) {
         WaveformSeekBar waveformSeekBar = findViewById(R.id.waveformSeekBar);
         if (newSong == null) {
-            waveformSeekBar.setSample(new int[] {0} );
+            waveformSeekBar.setSample(new int[]{0});
             waveformSeekBar.setProgress(0);
             return;
         }
