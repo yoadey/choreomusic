@@ -38,8 +38,9 @@
 <!--                <data android:scheme="content"-->
 <!--                      android:mimeType="audio/mpeg"/>-->
 <!--            </intent-filter>-->
-
         </activity>
+        <activity android:name="de.yoadey.choreomusic.ui.OnboardingActivity"
+            android:label="@string/introduction" />
         <activity
             android:name=".ui.AboutActivity"
             android:theme="@style/Theme.ChoreoMusicHelper"/>

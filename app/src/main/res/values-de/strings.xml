@@ -30,4 +30,11 @@
     <string name="speed_title">Geschwindigkeit</string>
     <string name="edittrack_note_end_time">Achtung: die Endzeit ist der Beginn des nächsten Kapitels und kann im nächsten Kapitel geändert werden.</string>
     <string name="track_exists">Es existiert schon ein Kapitel an Position %1$02d:%2$02d:\\n%3$s</string>
+    <string name="introduction">Einleitung</string>
+    <string name="intro_preptime">Wenn du zu einem Lied trainierst brauchst du wahrscheinlich etwas Zeit, um wieder auf die Startposition zu gehen. Füge diese vor und hinter der Schleife hinzu, die Vorlaufzeit gilt auch wenn du zu einem Kapitel springst.</string>
+    <string name="intro_loop">Erstelle eine Schleife indem du das Start- (A) und Endkapitel (B) auswählst. Solange A und B selektiert sind ist die Schleife aktiv.</string>
+    <string name="intro_split">Teile ein Lied mit diesem Button in kleinere Kapitel. Ein Kapitel besteht immer nur aus einem Startpunkt, das Ende ist durch das nächste Kapitel definiert.</string>
+    <string name="intro_loop_title">Schleife</string>
+    <string name="intro_split_title">Willkommen!</string>
+    <string name="intro_preptime_title">Vorbereitungszeit</string>
 </resources>

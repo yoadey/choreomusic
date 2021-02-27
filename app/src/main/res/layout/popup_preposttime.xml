@@ -1,114 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <TableLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="20dp">
+        android:textAlignment="center">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <TableLayout
+            android:id="@+id/tableLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            tools:ignore="UselessParent">
 
-            <TextView
+            <TableRow
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/prepost_prelabel" />
+                android:layout_height="wrap_content">
 
-            <EditText
-                android:id="@+id/prepostPreTime"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/prepost_prelabel" />
+
+                <EditText
+                    android:id="@+id/prepostPreTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:digits="0123456789"
+                    android:ems="2"
+                    android:importantForAutofill="no"
+                    android:inputType="number"
+                    android:text="10"
+                    android:textAlignment="viewEnd"
+                    tools:ignore="HardcodedText,LabelFor" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="s"
+                    tools:ignore="HardcodedText" />
+
+                <Space
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prepostPreMinus"
+                    style="@style/BorderedButton"
+                    android:text="-"
+                    android:textSize="24sp"
+                    tools:ignore="HardcodedText" />
+
+                <Space
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prepostPrePlus"
+                    style="@style/BorderedButton"
+                    android:text="+"
+                    android:textSize="24sp"
+                    tools:ignore="HardcodedText" />
+
+            </TableRow>
+
+            <TableRow
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ems="2"
-                android:inputType="number"
-                android:digits="0123456789"
-                android:text="10"
-                android:textAlignment="viewEnd"
-                tools:ignore="HardcodedText,LabelFor"
-                android:importantForAutofill="no" />
+                android:layout_height="wrap_content">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="s"
-                tools:ignore="HardcodedText" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/prepost_postlabel" />
 
-            <Space
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                <EditText
+                    android:id="@+id/prepostPostTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:digits="0123456789"
+                    android:ems="2"
+                    android:importantForAutofill="no"
+                    android:inputType="number"
+                    android:text="10"
+                    android:textAlignment="viewEnd"
+                    tools:ignore="HardcodedText,LabelFor" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prepostPreMinus"
-                style="@style/BorderedButton"
-                android:text="-"
-                android:textSize="24sp"
-                tools:ignore="HardcodedText" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="s"
+                    tools:ignore="HardcodedText" />
 
-            <Space
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                <Space
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prepostPrePlus"
-                style="@style/BorderedButton"
-                android:text="+"
-                android:textSize="24sp"
-                tools:ignore="HardcodedText" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prepostPostMinus"
+                    style="@style/BorderedButton"
+                    android:text="-"
+                    android:textSize="24sp"
+                    tools:ignore="HardcodedText" />
 
-        </TableRow>
+                <Space
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prepostPostPlus"
+                    style="@style/BorderedButton"
+                    android:text="+"
+                    android:textSize="24sp"
+                    tools:ignore="HardcodedText" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/prepost_postlabel" />
-
-            <EditText
-                android:id="@+id/prepostPostTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ems="2"
-                android:inputType="number"
-                android:digits="0123456789"
-                android:text="10"
-                android:textAlignment="viewEnd"
-                tools:ignore="HardcodedText,LabelFor"
-                android:importantForAutofill="no" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="s"
-                tools:ignore="HardcodedText" />
-
-            <Space
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prepostPostMinus"
-                style="@style/BorderedButton"
-                android:text="-"
-                android:textSize="24sp"
-                tools:ignore="HardcodedText" />
-
-            <Space
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prepostPostPlus"
-                style="@style/BorderedButton"
-                android:text="+"
-                android:textSize="24sp"
-                tools:ignore="HardcodedText" />
-
-        </TableRow>
-    </TableLayout>
+            </TableRow>
+        </TableLayout>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

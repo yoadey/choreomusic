@@ -24,9 +24,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
+import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
@@ -49,6 +49,7 @@ import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.ui.AboutActivity;
+import de.yoadey.choreomusic.ui.OnboardingActivity;
 import de.yoadey.choreomusic.ui.SongsTracksAdapter;
 import de.yoadey.choreomusic.ui.popups.PrePostDialogFragment;
 import de.yoadey.choreomusic.ui.popups.SpeedDialogFragment;
@@ -154,6 +155,24 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         new TabLayoutMediator(tabLayout, viewPager,
                 (tab, pos) -> tab.setText(pos == 0 ? R.string.songs : R.string.tracks)
         ).attach();
+
+        checkOnboarding();
+    }
+
+    /**
+     * Checks whether this is the first time the user starts the app and if yes, shows an onboarding
+     * screen.
+     */
+    private void checkOnboarding() {
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(this);
+        if (!sharedPreferences.getBoolean(
+                OnboardingActivity.COMPLETED_ONBOARDING_PREF_NAME, false)) {
+            SharedPreferences.Editor sharedPrefsEditor = sharedPreferences.edit();
+            sharedPrefsEditor.putBoolean(OnboardingActivity.COMPLETED_ONBOARDING_PREF_NAME, true);
+            sharedPrefsEditor.apply();
+            startActivity(new Intent(this, OnboardingActivity.class));
+        }
     }
 
     @Override
@@ -249,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
                 song.setLength(id3Handler.getLength());
                 song.setTracks(id3Handler.readChapters());
             } finally {
-                if(!localFile.delete()) {
+                if (!localFile.delete()) {
                     Log.w("MainActivity", "Could not delete temporary file");
                 }
             }
@@ -345,11 +364,11 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
             Track existingTrack = playlist.getTracks().stream()
                     .filter(track -> Math.abs(track.getPosition() - bookmarkPosition) < 100)
                     .findAny().orElse(null);
-            if(existingTrack != null) {
+            if (existingTrack != null) {
                 new AlertDialog.Builder(this)
                         .setTitle("Track already exists")
                         .setMessage(getString(R.string.track_exists,
-                                existingTrack.getPosition()/60000, existingTrack.getPosition()/1000%60,
+                                existingTrack.getPosition() / 60000, existingTrack.getPosition() / 1000 % 60,
                                 existingTrack.getLabel()))
                         // A null listener allows the button to dismiss the dialog and take no further action.
                         .setNegativeButton(android.R.string.ok, null)

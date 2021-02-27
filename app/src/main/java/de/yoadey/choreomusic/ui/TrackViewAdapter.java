@@ -119,7 +119,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
         MaterialButton loopA = layout.findViewById(R.id.trackLoopA);
         if (playbackControl.getLoopStart() == track) {
-            activateLoopA(nextTrack, loopA);
+            setLoopSelectedColors(loopA);
         } else {
             setLoopUnselectedColors(loopA);
         }
@@ -127,7 +127,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
         MaterialButton loopB = layout.findViewById(R.id.trackLoopB);
         if (playbackControl.getLoopEnd() == nextTrack) {
-            activateLoopB(nextTrack, loopB);
+            setLoopSelectedColors(loopB);
         } else {
             setLoopUnselectedColors(loopB);
         }
@@ -203,8 +203,8 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     private void setLoopSelectedColors(MaterialButton loopButton) {
         if (loopButton != null) {
-            loopButton.setTextColor(getColor(R.attr.loopUnselectedTextColor));
-            loopButton.setBackgroundColor(getColor(R.attr.loopUnselectedColor));
+            loopButton.setTextColor(getColor(R.attr.loopSelectedTextColor));
+            loopButton.setBackgroundColor(getColor(R.attr.loopSelectedColor));
         }
     }
 

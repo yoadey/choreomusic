@@ -51,7 +51,7 @@
         <item name="android:layout_width">48dp</item>
         <item name="android:layout_height">48dp</item>
         <item name="iconSize">30dp</item>
-        <item name="cornerRadius">20dp</item>
+        <item name="cornerRadius">24dp</item>
     </style>
 
     <style name="BorderedButton">

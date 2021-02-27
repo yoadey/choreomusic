@@ -29,4 +29,11 @@
     <string name="speed_title">Speed</string>
     <string name="edittrack_note_end_time">Note: the end time is the beginning of the next track and can only be configured at the next track.</string>
     <string name="track_exists">There already exists a track at position %1$02d:%2$02d:\n%3$s</string>
+    <string name="introduction">Introduction</string>
+    <string name="intro_preptime">If you are training to the song, you probably need some time between each iteration to go back to your starting position. Add some time before and after the loop to do so, the lead-in time also applies if you start a track.</string>
+    <string name="intro_loop">Create a loop by selecting the start (A) and the end track (B). As long as there are A and B selected, the loop is active.</string>
+    <string name="intro_split">Split a song with this button into smaller tracks. A track has always only a start, the end is defined by the next track.</string>
+    <string name="intro_loop_title">Loop</string>
+    <string name="intro_split_title">Welcome!</string>
+    <string name="intro_preptime_title">Preparation time</string>
 </resources>
