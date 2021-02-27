@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Choreo Music Helper</string>
+    <string name="app_description">Choreo Music Helper</string>
+    <string name="contact_group">Kontakt</string>
+    <string name="action_share">Teilen…</string>
+    <string name="action_open">Öffnen</string>
+    <string name="action_reload">Erneut laden</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_about">Info</string>
+    <string name="songs">Lieder</string>
+    <string name="tracks">Kapitel</string>
+    <string name="track_edit">Bearbeiten</string>
+    <string name="delete">Löschen</string>
+    <string name="prepost_title">Vorbereitungszeit</string>
+    <string name="prepost_prelabel">Vorlauf:</string>
+    <string name="prepost_postlabel">Nachlauf:</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="playback_channel_name">Choreo Music</string>
+    <string name="exit_title">Schließen</string>
+    <string name="exit_description">Bist du sicher, dass du die App beenden willst?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+    <string name="action_save">Speichern unter</string>
+    <string name="edit_track">Kapitel bearbeiten</string>
+    <string name="about_description">Der Choreo Music Helper dient zur Unterstützung beim Einstudieren einer Choreographie auf ein bestimmtes Lied. Es teilt das Lied in kleinere Kapitel, die mit unterschiedlicher Geschwindigkeit trainiert werden können.</string>
+    <string name="privacy_policy">Datenschutzerklärung</string>
+    <string name="licenses">Lizenzen</string>
+    <string name="speed_title">Geschwindigkeit</string>
+    <string name="edittrack_note_end_time">Achtung: die Endzeit ist der Beginn des nächsten Kapitels und kann im nächsten Kapitel geändert werden.</string>
+    <string name="track_exists">Es existiert schon ein Kapitel an Position %1$02d:%2$02d:\\n%3$s</string>
+</resources>

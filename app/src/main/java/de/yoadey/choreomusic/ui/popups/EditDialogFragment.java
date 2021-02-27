@@ -1,17 +1,19 @@
 package de.yoadey.choreomusic.ui.popups;
 
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.button.MaterialButton;
@@ -52,11 +54,12 @@ public class EditDialogFragment extends DialogFragment {
         handler = new Handler();
     }
 
+    @SuppressLint("InflateParams")
+    @NonNull
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.popup_edittrack, container,
-                false);
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        LayoutInflater inflater = getLayoutInflater();
+        rootView = inflater.inflate(R.layout.popup_edittrack, null);
 
         TextView renameTextView = rootView.findViewById(R.id.edittrackTextfield);
         renameTextView.setText(track.getLabel());
@@ -68,22 +71,23 @@ public class EditDialogFragment extends DialogFragment {
         MaterialButton play = rootView.findViewById(R.id.edittrackPlaypause);
         play.setOnClickListener(v -> onPlayChanged());
 
-        Button okButton = rootView.findViewById(R.id.edittrackOk);
-        okButton.setOnClickListener(view -> {
-            track.setPosition(editPosition);
-            track.setLabel(renameTextView.getText().toString());
-            playlist.updateTrack(track);
-            EditDialogFragment.this.dismiss();
-        });
-        Button cancelButton = rootView.findViewById(R.id.edittrackCancel);
-        cancelButton.setOnClickListener(view -> EditDialogFragment.this.dismiss());
-
-        return rootView;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        return builder
+                .setIcon(R.drawable.baseline_edit_24)
+                .setTitle(R.string.edit_track)
+                .setView(rootView)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.ok, (dialog, which) -> {
+                    track.setPosition(editPosition);
+                    track.setLabel(renameTextView.getText().toString());
+                    playlist.updateTrack(track);
+                })
+                .create();
     }
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
-        if(playSample) {
+        if (playSample) {
             playbackControl.pause();
         }
         super.onDismiss(dialog);
@@ -94,8 +98,8 @@ public class EditDialogFragment extends DialogFragment {
         if (!view.isEnabled()) {
             return false;
         }
-        if(track.getPosition() == 0) {
-            if(!playSample) {
+        if (track.getPosition() == 0) {
+            if (!playSample) {
                 ((WaveformSeekBar) view).setProgress(50);
             }
             return true;
@@ -139,6 +143,7 @@ public class EditDialogFragment extends DialogFragment {
         long length = song.getLength();
 
         MainActivity mainActivity = (MainActivity) getActivity();
+        assert mainActivity != null;
         int[] waveformData = mainActivity.getWaveformData();
         int startIndex = (int) (start * waveformData.length / length);
         int endIndex = (int) (end * waveformData.length / length);

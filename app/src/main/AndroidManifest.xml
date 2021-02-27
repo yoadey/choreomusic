@@ -11,7 +11,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ChoreoMusicHelper">
+        android:theme="@style/Theme.ChoreoMusicHelper"
+        android:extractNativeLibs="false"
+        android:fullBackupContent="@xml/backup_descriptor">
         <service android:name=".model.PlaybackControl"
             android:exported="false">
             <intent-filter>
@@ -22,7 +24,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.ChoreoMusicHelper.NoActionBar">
+            android:theme="@style/Theme.ChoreoMusicHelper">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -40,7 +42,7 @@
         </activity>
         <activity
             android:name=".ui.AboutActivity"
-            android:theme="@style/Theme.ChoreoMusicHelper.NoActionBar"/>
+            android:theme="@style/Theme.ChoreoMusicHelper"/>
 
 
         <provider

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="@style/MainLayout"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginStart="10dp">
@@ -11,34 +11,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="20dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="0"
-                app:srcCompat="@drawable/baseline_edit_24"
-                android:contentDescription="@string/edit_track" />
-
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0" />
-
-            <TextView
-                android:id="@+id/renameLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="1"
-                android:text="@string/edit_track"
-                android:textSize="24sp" />
-        </LinearLayout>
 
         <Space
             android:layout_width="match_parent"
@@ -51,7 +23,9 @@
             android:ems="15"
             android:inputType="textPersonName"
             android:selectAllOnFocus="true"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:importantForAutofill="no"
+            tools:ignore="LabelFor" />
 
         <Space
             android:layout_width="match_parent"
@@ -83,34 +57,15 @@
                 android:layout_weight="0" />
         </LinearLayout>
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
-
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="end"
-            android:orientation="horizontal">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/edittrackOk"
-                style="@style/BorderedButton"
-                android:layout_width="100dp"
-                android:text="@string/ok" />
-
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="wrap_content" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/edittrackCancel"
-                style="@style/BorderedButton"
-                android:layout_width="100dp"
-                android:text="@string/cancel" />
-
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/edittrack_note_end_time" />
         </LinearLayout>
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

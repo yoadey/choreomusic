@@ -2,6 +2,7 @@ package de.yoadey.choreomusic;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -194,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
 
     @Override
     public void onBackPressed() {
-        new MaterialAlertDialogBuilder(this, R.style.Popup)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.exit_title)
                 .setMessage(R.string.exit_description)
                 .setNegativeButton(R.string.yes, (dialog, which) -> {
@@ -336,17 +337,34 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         });
     }
 
+    @SuppressLint("DefaultLocale")
     private void addTrack() {
         ifPlaybackControlInitialized(() -> {
             long bookmarkPosition = playbackControl.getCurrentPosition();
-            // Find the highest track number and set the title of the new track to the next value
-            int nextTrack = playlist.getTracks().stream()
-                    .map(Track::getLabel)
-                    .filter(track -> track.matches("Track \\d+"))
-                    .map(track -> Integer.parseInt(track.replaceAll("Track (\\d+)", "$1")))
-                    .max(Integer::compareTo).orElse(0) + 1;
-            Track track = new Track(bookmarkPosition, "Track " + nextTrack);
-            playlist.addTrack(track);
+            // Check that there doesn't already exists a track at the same position
+            Track existingTrack = playlist.getTracks().stream()
+                    .filter(track -> Math.abs(track.getPosition() - bookmarkPosition) < 100)
+                    .findAny().orElse(null);
+            if(existingTrack != null) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Track already exists")
+                        .setMessage(getString(R.string.track_exists,
+                                existingTrack.getPosition()/60000, existingTrack.getPosition()/1000%60,
+                                existingTrack.getLabel()))
+                        // A null listener allows the button to dismiss the dialog and take no further action.
+                        .setNegativeButton(android.R.string.ok, null)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            } else {
+                // Find the highest track number and set the title of the new track to the next value
+                int nextTrack = playlist.getTracks().stream()
+                        .map(Track::getLabel)
+                        .filter(track -> track.matches("Track \\d+"))
+                        .map(track -> Integer.parseInt(track.replaceAll("Track (\\d+)", "$1")))
+                        .max(Integer::compareTo).orElse(0) + 1;
+                Track track = new Track(bookmarkPosition, "Track " + nextTrack);
+                playlist.addTrack(track);
+            }
         });
     }
 
@@ -410,9 +428,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
 //                return true;
         } else if (item.getItemId() == R.id.action_about) {
             startActivity(new Intent(this, AboutActivity.class));
-            return true;
-        } else if (item.getItemId() == R.id.action_licenses) {
-            startActivity(new Intent(this, OssLicensesMenuActivity.class));
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -505,6 +520,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
             waveformSeekBar.setProgress(0);
             return;
         }
+
+        // Switch to the tracks view when a song was opened
+        ViewPager2 viewPager = findViewById(R.id.main_area);
+        viewPager.setCurrentItem(1, true);
 
         // Save currently opened file to be opened again next time the application starts
         SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);

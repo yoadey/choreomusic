@@ -1,54 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginLeft="10dp"
-    style="@style/MainLayout">
+    android:layout_height="wrap_content">
 
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="20dp">
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_span="7"
-                android:orientation="horizontal"
-                tools:ignore="UselessParent">
-
-                <ImageView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_weight="0"
-                    app:srcCompat="@drawable/baseline_repeat_24" />
-
-                <Space
-                    android:layout_width="10dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0" />
-
-                <TextView
-                    style="@style/PopupTitle"
-                    android:layout_weight="1"
-                    android:text="@string/prepost_title" />
-            </LinearLayout>
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="10dp">
-
-            <Space
-                android:layout_height="20dp"
-                android:layout_weight="1" />
-        </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
@@ -64,14 +23,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="2"
-                android:inputType="textPersonName"
+                android:inputType="number"
+                android:digits="0123456789"
                 android:text="10"
-                android:textAlignment="viewEnd" />
+                android:textAlignment="viewEnd"
+                tools:ignore="HardcodedText,LabelFor"
+                android:importantForAutofill="no" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="s" />
+                android:text="s"
+                tools:ignore="HardcodedText" />
 
             <Space
                 android:layout_height="wrap_content"
@@ -81,7 +44,7 @@
                 android:id="@+id/prepostPreMinus"
                 style="@style/BorderedButton"
                 android:text="-"
-                android:textSize="24dp"
+                android:textSize="24sp"
                 tools:ignore="HardcodedText" />
 
             <Space
@@ -92,7 +55,7 @@
                 android:id="@+id/prepostPrePlus"
                 style="@style/BorderedButton"
                 android:text="+"
-                android:textSize="24dp"
+                android:textSize="24sp"
                 tools:ignore="HardcodedText" />
 
         </TableRow>
@@ -111,14 +74,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="2"
-                android:inputType="textPersonName"
+                android:inputType="number"
+                android:digits="0123456789"
                 android:text="10"
-                android:textAlignment="viewEnd" />
+                android:textAlignment="viewEnd"
+                tools:ignore="HardcodedText,LabelFor"
+                android:importantForAutofill="no" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="s" />
+                android:text="s"
+                tools:ignore="HardcodedText" />
 
             <Space
                 android:layout_height="wrap_content"
@@ -128,7 +95,7 @@
                 android:id="@+id/prepostPostMinus"
                 style="@style/BorderedButton"
                 android:text="-"
-                android:textSize="24dp"
+                android:textSize="24sp"
                 tools:ignore="HardcodedText" />
 
             <Space
@@ -139,40 +106,8 @@
                 android:id="@+id/prepostPostPlus"
                 style="@style/BorderedButton"
                 android:text="+"
-                android:textSize="24dp"
+                android:textSize="24sp"
                 tools:ignore="HardcodedText" />
-
-        </TableRow>
-
-        <TableRow
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="right"
-                android:layout_span="7"
-                android:orientation="horizontal"
-                tools:ignore="UselessParent">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/prepostOk"
-                    style="@style/BorderedButton"
-                    android:layout_width="100dp"
-                    android:text="@string/ok" />
-
-                <Space
-                    android:layout_width="10dp"
-                    android:layout_height="wrap_content" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/prepostCancel"
-                    style="@style/BorderedButton"
-                    android:layout_width="100dp"
-                    android:text="@string/cancel" />
-
-            </LinearLayout>
 
         </TableRow>
     </TableLayout>
