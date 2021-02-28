@@ -29,7 +29,7 @@
     <string name="licenses">Lizenzen</string>
     <string name="speed_title">Geschwindigkeit</string>
     <string name="edittrack_note_end_time">Achtung: die Endzeit ist der Beginn des nächsten Cue Punkts und kann im nächsten Cue Punkt geändert werden.</string>
-    <string name="track_exists">Es existiert schon ein Cue Punkt an Position %1$02d:%2$02d:\\n%3$s</string>
+    <string name="track_exists">Es existiert schon ein Cue Punkt an Position %1$02d:%2$02d:\n%3$s</string>
     <string name="introduction">Einleitung</string>
     <string name="intro_preptime">Wenn du zu einem Lied trainierst brauchst du wahrscheinlich etwas Zeit, um wieder auf die Startposition zu gehen. Du kannst diese vor und hinter der Schleife hinzufügen. Die Vorlaufzeit gilt auch, wenn du zu einem Cue Punkt springst.</string>
     <string name="intro_loop">Erstelle eine Schleife indem du den Start (A) und End Cue Punkt (B) auswählst. Solange A und B selektiert sind ist die Schleife aktiv.</string>
@@ -38,6 +38,7 @@
     <string name="intro_split_title">Willkommen!</string>
     <string name="intro_preptime_title">Vorbereitungszeit</string>
     <string name="intro_edit_title">Cue Punkt bearbeiten</string>
-    <string name="intro_edit">Durch langes drücken eines Cue Punktes kannst du es umbenennen, die Startposition verändern oder es löschen.</string>
+    <string name="intro_edit">Durch langes drücken eines Cue Punktes kannst du ihn umbenennen, die Startposition verändern oder ihn löschen.</string>
     <string name="action_onboarding">Einführung</string>
+    <string name="track_exists_title">Cue Punkt existiert schon</string>
 </resources>

@@ -366,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
                     .findAny().orElse(null);
             if (existingTrack != null) {
                 new AlertDialog.Builder(this)
-                        .setTitle("Track already exists")
+                        .setTitle(R.string.track_exists_title)
                         .setMessage(getString(R.string.track_exists,
                                 existingTrack.getPosition() / 60000, existingTrack.getPosition() / 1000 % 60,
                                 existingTrack.getLabel()))

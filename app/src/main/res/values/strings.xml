@@ -39,4 +39,5 @@
     <string name="intro_edit">By long pressing on a track you can edit the name and starting position of a track or delete it.</string>
     <string name="intro_edit_title">Edit track</string>
     <string name="action_onboarding">Introduction</string>
+    <string name="track_exists_title">Track already exists</string>
 </resources>
