@@ -19,13 +19,19 @@ class OnboardingActivity : AppIntro() {
         ))
         addSlide(AppIntroFragment.newInstance(
                 title = getString(R.string.intro_loop_title),
-                imageDrawable = R.drawable.loop_explanation,
+                imageDrawable = R.drawable.onboarding_loop,
                 description = getString(R.string.intro_loop),
                 backgroundDrawable = R.drawable.intro_background
         ))
         addSlide(AppIntroFragment.newInstance(
+                title = getString(R.string.intro_edit_title),
+                imageDrawable = R.drawable.onboarding_edit,
+                description = getString(R.string.intro_edit),
+                backgroundDrawable = R.drawable.intro_background
+        ))
+        addSlide(AppIntroFragment.newInstance(
                 title = getString(R.string.intro_preptime_title),
-                imageDrawable = R.drawable.preparation_time,
+                imageDrawable = R.drawable.onboarding_time,
                 description = getString(R.string.intro_preptime),
                 backgroundDrawable = R.drawable.intro_background
         ))
@@ -33,13 +39,11 @@ class OnboardingActivity : AppIntro() {
 
     public override fun onSkipPressed(currentFragment: Fragment?) {
         super.onSkipPressed(currentFragment)
-        // Decide what to do when the user clicks on "Skip"
         finish()
     }
 
     public override fun onDonePressed(currentFragment: Fragment?) {
         super.onDonePressed(currentFragment)
-        // Decide what to do when the user clicks on "Done"
         finish()
     }
 

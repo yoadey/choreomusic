@@ -448,6 +448,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         } else if (item.getItemId() == R.id.action_about) {
             startActivity(new Intent(this, AboutActivity.class));
             return true;
+        } else if (item.getItemId() == R.id.action_onboarding) {
+            startActivity(new Intent(this, OnboardingActivity.class));
+            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }

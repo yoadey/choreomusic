@@ -18,6 +18,9 @@
     <item
         android:id="@+id/action_reload"
         android:title="@string/action_reload" />
+    <item
+        android:id="@+id/action_onboarding"
+        android:title="@string/action_onboarding" />
     <!--<item
         android:id="@+id/action_settings"
         android:title="@string/action_settings" />-->
