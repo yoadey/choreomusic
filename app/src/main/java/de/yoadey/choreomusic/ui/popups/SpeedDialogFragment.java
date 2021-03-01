@@ -62,7 +62,7 @@ public class SpeedDialogFragment extends DialogFragment {
                 .setIcon(R.drawable.baseline_speed_24)
                 .setTitle(R.string.speed_title)
                 .setView(rootView)
-                .setPositiveButton(R.string.ok, null)
+                .setPositiveButton(R.string.ok, (dialog, which) -> playbackControl.setSpeed(speed))
                 .create();
     }
 
