@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:key="preTimeSwitchTrack"
+        app:title="@string/pref_leadin_track_switch_title"
+        app:icon="@drawable/baseline_more_time_24"
+        app:defaultValue="true"
+        app:summary="@string/pref_leadin_track_switch_summary"/>
 
 </PreferenceScreen>

@@ -21,10 +21,10 @@ import com.masoudss.lib.WaveformSeekBar;
 
 import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
-import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.service.PlaybackControl;
 
 public class EditDialogFragment extends DialogFragment {
 

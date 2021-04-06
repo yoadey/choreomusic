@@ -43,14 +43,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-import de.yoadey.choreomusic.model.PlaybackControl;
-import de.yoadey.choreomusic.model.PlaybackControl.PlaybackListener;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.service.PlaybackControl;
 import de.yoadey.choreomusic.ui.AboutActivity;
 import de.yoadey.choreomusic.ui.OnboardingActivity;
-import de.yoadey.choreomusic.ui.SongsTracksAdapter;
+import de.yoadey.choreomusic.ui.settings.SettingsActivity;
+import de.yoadey.choreomusic.ui.tracks.SongsTracksAdapter;
 import de.yoadey.choreomusic.ui.popups.PrePostDialogFragment;
 import de.yoadey.choreomusic.ui.popups.SpeedDialogFragment;
 import de.yoadey.choreomusic.utils.DatabaseHelper;
@@ -58,7 +58,7 @@ import de.yoadey.choreomusic.utils.Id3TagsHandler;
 import de.yoadey.choreomusic.utils.Utils;
 import lombok.Getter;
 
-public class MainActivity extends AppCompatActivity implements PlaybackListener, ServiceConnection {
+public class MainActivity extends AppCompatActivity implements PlaybackControl.PlaybackListener, ServiceConnection {
 
     /**
      * Number of milliseconds to delay, before the background thread is called again to update the UI components and the loop
@@ -91,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
 
     private List<Song> songs;
     private Playlist playlist;
+    // A file which should be opened once the PlaybackControl service is connected
+    private Uri fileToOpen;
 
     public DatabaseHelper getDatabaseHelper() {
         return databaseHelper;
@@ -233,6 +235,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         playbackControl.setSpeed(1.0f);
         playlist = playbackControl.getPlaylist();
         playlist.addPlaylistListener(databaseHelper);
+        openFile(fileToOpen);
         reloadLastFile();
     }
 
@@ -244,20 +247,47 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         playbackControl = null;
     }
 
-    public void openFile(Uri file) {
+    public synchronized void openFile(Uri file) {
+        // playbackControl might not yet be connected, but is required. Only execute, once
+        // playbackControl is connected
+        if(playbackControl == null || file == null) {
+            if(file != null) {
+                fileToOpen = file;
+            }
+            return;
+        }
+
         // Check whether file still exists
         boolean stillExists = getContentResolver().getPersistedUriPermissions()
                 .stream()
                 .anyMatch(element -> Objects.equals(element.getUri(), file));
-
-        // Save/update/delete fileinfos
-        Song song = databaseHelper.findFileInfoByUri(file);
         if (!stillExists) {
-            if (song != null) {
-                databaseHelper.deleteSong(song);
-            }
+            databaseHelper.deleteSongByUri(file);
             return;
         }
+
+        // Save/update/delete fileinfos
+        Song song = getOrCreateSong(file);
+
+        if (!songs.contains(song)) {
+            songs.add(song);
+            songs.sort((s1, s2) -> s1.getTitle().compareTo(s2.getTitle()));
+        }
+
+        // Open file
+        if (playbackControl != null) {
+            playbackControl.openSong(song);
+        }
+    }
+
+    /**
+     * Find the song information in the DB or create them, if they are not yet there
+     *
+     * @param file the file for which the song information should be returned
+     * @return the found or created song
+     */
+    private Song getOrCreateSong(Uri file) {
+        Song song = databaseHelper.findSongByUri(file);
         boolean isNew = song == null;
         if (isNew) {
             song = new Song();
@@ -278,16 +308,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
         if (isNew) {
             databaseHelper.saveTracks(song.getTracks());
         }
-
-        if (!songs.contains(song)) {
-            songs.add(song);
-            songs.sort((s1, s2) -> s1.getTitle().compareTo(s2.getTitle()));
-        }
-
-        // Open file
-        if (playbackControl != null) {
-            playbackControl.openSong(song);
-        }
+        return song;
     }
 
     /**
@@ -332,17 +353,13 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
 
     private void previousTrack() {
         ifPlaybackControlInitialized(() -> {
-            Track currentTrack = playbackControl.getCurrentTrack();
-            Track previousTrack = playlist.getPreviousTrack(currentTrack);
-            playbackControl.seekTo(previousTrack);
+            playbackControl.previousTrack();
         });
     }
 
     private void nextTrack() {
         ifPlaybackControlInitialized(() -> {
-            Track currentTrack = playbackControl.getCurrentTrack();
-            Track nextTrack = playlist.getNextTrack(currentTrack);
-            playbackControl.seekTo(nextTrack);
+            playbackControl.nextTrack();
         });
     }
 
@@ -442,9 +459,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackListener,
                 }
             });
             return true;
-//      } else if (item.getItemId() == R.id.action_settings) {
-//                startActivity(new Intent(this, SettingsActivity.class));
-//                return true;
+      } else if (item.getItemId() == R.id.action_settings) {
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
         } else if (item.getItemId() == R.id.action_about) {
             startActivity(new Intent(this, AboutActivity.class));
             return true;

@@ -1,4 +1,4 @@
-package de.yoadey.choreomusic.ui;
+package de.yoadey.choreomusic.ui.tracks;
 
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -23,10 +23,10 @@ import java.util.List;
 
 import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
-import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.service.PlaybackControl;
 import de.yoadey.choreomusic.utils.Utils;
 
 public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.TrackViewHolder> implements Playlist.PlaylistListener, PlaybackControl.PlaybackListener {

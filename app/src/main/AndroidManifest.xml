@@ -14,7 +14,7 @@
         android:theme="@style/Theme.ChoreoMusicHelper"
         android:extractNativeLibs="false"
         android:fullBackupContent="@xml/backup_descriptor">
-        <service android:name=".model.PlaybackControl"
+        <service android:name=".service.PlaybackControl"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
@@ -41,6 +41,8 @@
         </activity>
         <activity android:name="de.yoadey.choreomusic.ui.OnboardingActivity"
             android:label="@string/introduction" />
+        <activity android:name=".ui.settings.SettingsActivity"
+            android:label="@string/settings" />
         <activity
             android:name=".ui.AboutActivity"
             android:theme="@style/Theme.ChoreoMusicHelper"/>

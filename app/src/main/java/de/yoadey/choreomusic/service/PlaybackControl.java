@@ -1,4 +1,4 @@
-package de.yoadey.choreomusic.model;
+package de.yoadey.choreomusic.service;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,18 +10,18 @@ import android.os.Binder;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 
+import com.google.android.exoplayer2.DefaultControlDispatcher;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
-import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator;
 import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +40,9 @@ import java.util.Set;
 
 import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
+import de.yoadey.choreomusic.model.Playlist;
+import de.yoadey.choreomusic.model.Song;
+import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.utils.Utils;
 import lombok.Getter;
 
@@ -51,11 +54,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     public static final String PLAYBACK_CHANNEL_ID = "PlaybackServiceForegroundServiceChannel";
     public static final int PLAYBACK_NOTIFICATION_ID = 1;
     public static final String MEDIA_SESSION_TAG = "ChoreMusic";
-    private static final String SP_PLAYBACK = "PLAYBACK_CONTROL";
-    /** Shared property name for the last last leadInTime */
-    private static final String SP_LEAD_IN_TIME = "LEAD_IN_TIME";
-    /**  Shared property name for the last last leadOutTime */
-    private static final String SP_LEAD_OUT_TIME = "LEAD_OUT_TIME";
     /**
      * Action for an Intent. Should be called to start the service.
      */
@@ -64,26 +62,35 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * Action for an Intent. Should be called to stop the service.
      */
     public static final String STOP_ACTION = "StopService";
-
+    private static final String SP_PLAYBACK = "PLAYBACK_CONTROL";
+    /**
+     * Shared property name for the last last leadInTime
+     */
+    private static final String SP_LEAD_IN_TIME = "LEAD_IN_TIME";
+    /**
+     * Shared property name for the last last leadOutTime
+     */
+    private static final String SP_LEAD_OUT_TIME = "LEAD_OUT_TIME";
+    /**
+     * Time in ms in which the previous button jumps the previous track instead to the beginning
+     * of this track
+     */
+    private static final long PREVIOUS_TRACK_DISTANCE = 5000;
     /**
      * Background thread for handling the loop
      */
     private final Handler handler = new Handler();
     private final Object threadRunningLock = new Object();
+    private final Set<PlaybackListener> listeners;
+    @Getter
+    private final Playlist playlist;
     private boolean threadRunning;
-
     // Media player and notification stuff
     private ExoPlayer player;
     private MediaSessionCompat mediaSession;
     private MediaSessionConnector mediaSessionConnector;
     private PlayerNotificationManager playerNotificationManager;
     private boolean initialized;
-
-    private final Set<PlaybackListener> listeners;
-
-    @Getter
-    private final Playlist playlist;
-
     /**
      * The currently playing song.
      */
@@ -139,6 +146,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
         player = new SimpleExoPlayer.Builder(this).build();
         player.prepare();
+        player.setRepeatMode(Player.REPEAT_MODE_ONE);
 
         player.addListener(new Player.EventListener() {
             @Override
@@ -158,24 +166,10 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         });
 
         mediaSession = new MediaSessionCompat(this, MEDIA_SESSION_TAG);
-        mediaSession.setActive(true);
 
         mediaSessionConnector = new MediaSessionConnector(mediaSession);
-        mediaSessionConnector.setQueueNavigator(new TimelineQueueNavigator(mediaSession) {
-            @NotNull
-            @Override
-            public MediaDescriptionCompat getMediaDescription(@NotNull Player player, int windowIndex) {
-                if (currentSong == null) {
-                    return new MediaDescriptionCompat.Builder()
-                            .build();
-                }
-                return new MediaDescriptionCompat.Builder()
-                        .setMediaId(currentSong.getUri())
-                        .setTitle(currentSong.getTitle())
-                        .build();
-            }
-        });
         mediaSessionConnector.setPlayer(player);
+        mediaSession.setActive(true);
     }
 
     private void initializeNotification() {
@@ -220,6 +214,20 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 }
         );
         playerNotificationManager.setPlayer(player);
+
+        playerNotificationManager.setControlDispatcher(new DefaultControlDispatcher() {
+            @Override
+            public boolean dispatchPrevious(Player player) {
+                previousTrack();
+                return true;
+            }
+
+            @Override
+            public boolean dispatchNext(Player player) {
+                nextTrack();
+                return true;
+            }
+        });
         playerNotificationManager.setMediaSessionToken(mediaSession.getSessionToken());
     }
 
@@ -254,27 +262,10 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         listeners.remove(listener);
     }
 
-    public interface PlaybackListener {
-        default void onSongChanged(Song newSong) {
-        }
-
-        default void onTrackChanged(Track newTrack) {
-        }
-
-        default void onIsPlayingChanged(boolean isPlaying) {
-        }
-    }
-
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return new LocalBinder();
-    }
-
-    public class LocalBinder extends Binder {
-        public PlaybackControl getInstance() {
-            return PlaybackControl.this;
-        }
     }
 
     public boolean isInitialized() {
@@ -283,7 +274,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     @NotNull
     public File getLocalFile() {
-        if(localFile != null && localFile.exists()) {
+        if (localFile != null && localFile.exists()) {
             return localFile;
         }
         localFile = getLocalFile(currentSong.getParsedUri());
@@ -396,13 +387,46 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         return player.isPlaying();
     }
 
+    public void previousTrack() {
+        long position = player.getCurrentPosition();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean preTimeSwitchTrack = prefs.getBoolean("preTimeSwitchTrack", true);
+        if (preTimeSwitchTrack) {
+            position += leadInTime + 100;
+        }
+        if (position > currentTrack.getPosition() + PREVIOUS_TRACK_DISTANCE) {
+            seekTo(currentTrack);
+        } else {
+            Track track = playlist.getTrackForPosition(position);
+            seekTo(playlist.getPreviousTrack(track));
+        }
+    }
+
+    public void nextTrack() {
+        long position = player.getCurrentPosition();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean preTimeSwitchTrack = prefs.getBoolean("preTimeSwitchTrack", true);
+        if (preTimeSwitchTrack) {
+            position += leadInTime + 100;
+        }
+        Track track = playlist.getTrackForPosition(position);
+        seekTo(playlist.getNextTrack(track));
+    }
+
     public void seekTo(Track track) {
-        // Also use leadInTime for track selection, as probably mostly it is not wanted to start
+        long position = track.getPosition();
+
+        // Use leadInTime for track switch if set, as probably mostly it is not wanted to start
         // directly at the track but start dancing and you need some time of preparation for this
-        long position = track.getPosition() - leadInTime;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean preTimeSwitchTrack = prefs.getBoolean("preTimeSwitchTrack", true);
+        if (preTimeSwitchTrack) {
+            position -= leadInTime;
+        }
+
         player.seekTo(position);
-        currentTrack = track;
-        nextTrack = playlist.getNextTrack(track);
+        currentTrack = playlist.getTrackForPosition(position);
+        nextTrack = playlist.getNextTrack(currentTrack);
         listeners.forEach(l -> l.onTrackChanged(currentTrack));
     }
 
@@ -466,7 +490,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if (Objects.equals(song, currentSong)) {
             return;
         }
-        if(localFile != null) {
+        if (localFile != null) {
             localFile.delete();
         }
         if (song == null) {
@@ -480,6 +504,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
         MediaItem mediaItem = MediaItem.fromUri(song.getParsedUri());
         player.setMediaItem(mediaItem);
+        // To allow next buttons in notification
+        player.addMediaItem(mediaItem);
         currentSong = song;
         player.prepare();
         initialized = true;
@@ -510,6 +536,23 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if (!newTracks.isEmpty()) {
             currentTrack = null;
             checkTrack();
+        }
+    }
+
+    public interface PlaybackListener {
+        default void onSongChanged(Song newSong) {
+        }
+
+        default void onTrackChanged(Track newTrack) {
+        }
+
+        default void onIsPlayingChanged(boolean isPlaying) {
+        }
+    }
+
+    public class LocalBinder extends Binder {
+        public PlaybackControl getInstance() {
+            return PlaybackControl.this;
         }
     }
 }

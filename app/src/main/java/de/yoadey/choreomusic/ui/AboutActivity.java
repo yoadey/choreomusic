@@ -55,7 +55,7 @@ public class AboutActivity extends AppCompatActivity {
                 .setDescription(getString(R.string.about_description))
                 .addGroup(getString(R.string.contact_group))
                 .addEmail("info@yoadey.de")
-                .addGitHub("https://github.com/yoadey/choreomusic")
+                .addGitHub("yoadey/choreomusic")
                 .addItem(privacyElement)
                 .addItem(licensesElement)
                 .addItem(versionElement)

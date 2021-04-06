@@ -16,7 +16,7 @@ import com.google.android.material.slider.Slider;
 import org.jetbrains.annotations.NotNull;
 
 import de.yoadey.choreomusic.R;
-import de.yoadey.choreomusic.model.PlaybackControl;
+import de.yoadey.choreomusic.service.PlaybackControl;
 
 public class SpeedDialogFragment extends DialogFragment {
 

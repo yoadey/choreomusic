@@ -1,4 +1,4 @@
-package de.yoadey.choreomusic.ui;
+package de.yoadey.choreomusic.ui.tracks;
 
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Map;
 
 import de.yoadey.choreomusic.R;
-import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.service.PlaybackControl;
 import de.yoadey.choreomusic.ui.popups.EditDialogFragment;
 
 public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<TrackViewAdapter.TrackViewHolder>

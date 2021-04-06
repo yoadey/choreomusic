@@ -9,12 +9,12 @@ import java.util.List;
 
 import de.yoadey.choreomusic.model.DaoMaster;
 import de.yoadey.choreomusic.model.DaoSession;
-import de.yoadey.choreomusic.model.PlaybackControl;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.SongDao;
 import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.model.TrackDao;
+import de.yoadey.choreomusic.service.PlaybackControl;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -73,7 +73,7 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
         trackDao.delete(track);
     }
 
-    public Song findFileInfoByUri(Uri file) {
+    public Song findSongByUri(Uri file) {
         SongDao songDao = daoSession.getSongDao();
         return songDao.queryBuilder() //
                 .where(SongDao.Properties.Uri.eq(file.toString())) //
@@ -119,5 +119,12 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
         song.getTracks().forEach(trackDao::delete);
         SongDao songDao = daoSession.getSongDao();
         songDao.delete(song);
+    }
+
+    public void deleteSongByUri(Uri file) {
+        Song songToDelete = findSongByUri(file);
+        if(songToDelete != null) {
+            deleteSong(songToDelete);
+        }
     }
 }

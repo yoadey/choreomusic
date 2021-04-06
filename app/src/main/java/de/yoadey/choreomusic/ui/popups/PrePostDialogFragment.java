@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import de.yoadey.choreomusic.R;
-import de.yoadey.choreomusic.model.PlaybackControl;
+import de.yoadey.choreomusic.service.PlaybackControl;
 
 public class PrePostDialogFragment extends DialogFragment {
 

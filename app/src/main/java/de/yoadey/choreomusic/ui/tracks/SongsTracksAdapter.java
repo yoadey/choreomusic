@@ -1,4 +1,4 @@
-package de.yoadey.choreomusic.ui;
+package de.yoadey.choreomusic.ui.tracks;
 
 import android.content.Context;
 import android.view.LayoutInflater;

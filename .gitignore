@@ -16,3 +16,6 @@ local.properties
 release
 libs
 .idea
+/app
+.project
+.settings
