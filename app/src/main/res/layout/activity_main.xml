@@ -24,7 +24,7 @@
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabs"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/main_area"
@@ -115,19 +115,31 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0" />
 
-                    <com.masoudss.lib.WaveformSeekBar
-                        app:wave_progress="33"
-                        app:wave_width="1px"
-                        app:wave_gap="0dp"
-                        app:wave_min_height="5dp"
-                        app:wave_corner_radius="0dp"
-                        app:wave_background_color="@color/lightyellow"
-                        app:wave_progress_color="@color/orange_main"
-                        app:wave_gravity="center"
-                        android:id="@+id/waveformSeekBar"
-                        android:layout_weight="1"
+                    <FrameLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="50dp"/>
+                        android:layout_height="50dp"
+                        android:layout_weight="1">
+
+                        <com.masoudss.lib.WaveformSeekBar
+                            android:id="@+id/waveformSeekBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            app:wave_background_color="@color/lightyellow"
+                            app:wave_corner_radius="0dp"
+                            app:wave_gap="0dp"
+                            app:wave_gravity="center"
+                            app:wave_min_height="5dp"
+                            app:wave_progress="33"
+                            app:wave_progress_color="@color/orange_main"
+                            app:wave_width="1px" />
+
+                        <TextView
+                            android:id="@+id/waveformCalcText"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text=""/>
+                    </FrameLayout>
 
                     <Space
                         android:layout_width="5dp"

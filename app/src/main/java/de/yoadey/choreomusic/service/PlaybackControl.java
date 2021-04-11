@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
@@ -154,7 +155,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 if (isPlaying) {
                     startLoopingThread();
                 }
-                listeners.forEach(l -> l.onIsPlayingChanged(isPlaying));
+                fireEvent(l -> l.onIsPlayingChanged(isPlaying));
             }
 
             @Override
@@ -255,11 +256,21 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     public void addPlaybackListener(PlaybackListener listener) {
-        listeners.add(listener);
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
     }
 
     public void deletePlaybackListener(PlaybackListener listener) {
-        listeners.remove(listener);
+        synchronized (listeners) {
+            listeners.remove(listener);
+        }
+    }
+
+    private void fireEvent(Consumer<? super PlaybackListener> consumer) {
+        synchronized (listeners) {
+            listeners.forEach(consumer);
+        }
     }
 
     @Nullable
@@ -427,7 +438,9 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         player.seekTo(position);
         currentTrack = playlist.getTrackForPosition(position);
         nextTrack = playlist.getNextTrack(currentTrack);
-        listeners.forEach(l -> l.onTrackChanged(currentTrack));
+        synchronized (listeners) {
+            fireEvent(l -> l.onTrackChanged(currentTrack));
+        }
     }
 
     /**
@@ -482,7 +495,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 player.getCurrentPosition() > nextTrack.getPosition()) {
             currentTrack = playlist.getTrackForPosition(player.getCurrentPosition());
             nextTrack = playlist.getNextTrack(currentTrack);
-            listeners.forEach(l -> l.onTrackChanged(currentTrack));
+            fireEvent(l -> l.onTrackChanged(currentTrack));
         }
     }
 
@@ -496,7 +509,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if (song == null) {
             this.currentSong = null;
             playlist.reset(Collections.emptyList());
-            listeners.forEach(l -> l.onSongChanged(null));
+            fireEvent(l -> l.onSongChanged(null));
             return;
         }
         if (initialized) {
@@ -509,7 +522,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         currentSong = song;
         player.prepare();
         initialized = true;
-        listeners.forEach(l -> l.onSongChanged(currentSong));
+        fireEvent(l -> l.onSongChanged(currentSong));
         // Reset tracks, as the file might be opened before and the tracks may have changed
         song.resetTracks();
         List<Track> tracks = song.getTracks();

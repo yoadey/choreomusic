@@ -10,9 +10,11 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
+import androidx.core.os.HandlerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -38,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -49,10 +53,11 @@ import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.service.PlaybackControl;
 import de.yoadey.choreomusic.ui.AboutActivity;
 import de.yoadey.choreomusic.ui.OnboardingActivity;
-import de.yoadey.choreomusic.ui.settings.SettingsActivity;
-import de.yoadey.choreomusic.ui.tracks.SongsTracksAdapter;
 import de.yoadey.choreomusic.ui.popups.PrePostDialogFragment;
 import de.yoadey.choreomusic.ui.popups.SpeedDialogFragment;
+import de.yoadey.choreomusic.ui.settings.SettingsActivity;
+import de.yoadey.choreomusic.ui.tracks.SongsTracksAdapter;
+import de.yoadey.choreomusic.utils.AmplitudesHelper;
 import de.yoadey.choreomusic.utils.DatabaseHelper;
 import de.yoadey.choreomusic.utils.Id3TagsHandler;
 import de.yoadey.choreomusic.utils.Utils;
@@ -76,11 +81,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
      * Shared property name for the last opened music file
      */
     private static final String SP_FILE_KEY = "MUSIC_FILE";
-    /**
-     * Background thread handler to update the UI when the music is running
-     */
-    private final Handler handler = new Handler();
     private final Object threadRunningLock = new Object();
+    private final Handler handler = HandlerCompat.createAsync(Looper.myLooper());
     private boolean threadRunning;
 
     private DatabaseHelper databaseHelper;
@@ -127,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
 
         WaveformSeekBar waveformSeekBar = findViewById(R.id.waveformSeekBar);
         waveformSeekBar.setSample(new int[]{0});
-        handler.postDelayed(() -> initializeWaveform(waveformSeekBar), 10);
+        AsyncTask.execute(() -> initializeWaveform(waveformSeekBar));
         waveformSeekBar.setOnProgressChanged(this::onSliderChanged);
 
         MaterialButton play = findViewById(R.id.playpause);
@@ -250,8 +252,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     public synchronized void openFile(Uri file) {
         // playbackControl might not yet be connected, but is required. Only execute, once
         // playbackControl is connected
-        if(playbackControl == null || file == null) {
-            if(file != null) {
+        if (playbackControl == null || file == null) {
+            if (file != null) {
                 fileToOpen = file;
             }
             return;
@@ -317,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
      */
     private void reloadLastFile() {
         // Reloading of last file should happen asynchronously, so it doesn't block the UI thread
-        handler.post(() -> {
+        AsyncTask.execute(() -> {
             if (playbackControl.getCurrentSong() != null) {
                 openFile(playbackControl.getCurrentSong().getParsedUri());
                 onSongChanged(playbackControl.getCurrentSong());
@@ -335,13 +337,33 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
 
     private void initializeWaveform(WaveformSeekBar waveformSeekBar) {
         ifPlaybackControlInitialized(() -> {
-            waveformSeekBar.setMaxProgress(playbackControl.getCurrentSong().getLength());
-            File localFile = playbackControl.getLocalFile();
-            try {
-                waveformSeekBar.setSampleFrom(localFile);
-            } catch (Exception e) {
-                waveformSeekBar.setSample(new int[]{1});
+            TextView textView = findViewById(R.id.waveformCalcText);
+            runOnUiThread(() -> {
+                int[] sample = new int[(int) (playbackControl.getCurrentSong().getLength() / 100)];
+                Arrays.fill(sample, 0);
+                waveformSeekBar.setSample(sample);
+                textView.setText(R.string.waveview_calculating);
+            });
+
+            Song song = playbackControl.getCurrentSong();
+            int[] sample;
+            if (song.getAmplitudes() == null) {
+                File localFile = playbackControl.getLocalFile();
+                sample = AmplitudesHelper.extractAmplitudes(this, localFile);
+                runOnUiThread(() -> {
+                    waveformSeekBar.setSample(sample);
+                    textView.setText("");
+                });
+                song.setIntAmplitudes(sample);
+                song.update();
+            } else {
+                sample = song.getIntAmplitudes();
             }
+            runOnUiThread(() -> {
+                waveformSeekBar.setMaxProgress(song.getLength());
+                waveformSeekBar.setSample(sample);
+                textView.setText("");
+            });
         });
     }
 
@@ -352,15 +374,11 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
      *-----------------------------------------------------*/
 
     private void previousTrack() {
-        ifPlaybackControlInitialized(() -> {
-            playbackControl.previousTrack();
-        });
+        ifPlaybackControlInitialized(() -> playbackControl.previousTrack());
     }
 
     private void nextTrack() {
-        ifPlaybackControlInitialized(() -> {
-            playbackControl.nextTrack();
-        });
+        ifPlaybackControlInitialized(() -> playbackControl.nextTrack());
     }
 
     private void onPlayChanged() {
@@ -459,9 +477,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                 }
             });
             return true;
-      } else if (item.getItemId() == R.id.action_settings) {
-                startActivity(new Intent(this, SettingsActivity.class));
-                return true;
+        } else if (item.getItemId() == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
         } else if (item.getItemId() == R.id.action_about) {
             startActivity(new Intent(this, AboutActivity.class));
             return true;
@@ -540,9 +558,11 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
             position = 0;
         }
         WaveformSeekBar slider = findViewById(R.id.waveformSeekBar);
-        slider.setProgress((int) position);
         TextView time = findViewById(R.id.time);
-        time.setText(String.format("%02d:%02d", position / 60000, position / 1000 % 60));
+        runOnUiThread(() -> {
+            slider.setProgress((int) position);
+            time.setText(String.format("%02d:%02d", position / 60000, position / 1000 % 60));
+        });
     }
 
     private void sendCommandToService(String action) {
@@ -555,23 +575,26 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     public void onSongChanged(Song newSong) {
         WaveformSeekBar waveformSeekBar = findViewById(R.id.waveformSeekBar);
         if (newSong == null) {
-            waveformSeekBar.setSample(new int[]{0});
-            waveformSeekBar.setProgress(0);
+            runOnUiThread(() -> {
+                waveformSeekBar.setSample(new int[]{0});
+                waveformSeekBar.setProgress(0);
+            });
             return;
         }
 
         // Switch to the tracks view when a song was opened
         ViewPager2 viewPager = findViewById(R.id.main_area);
-        viewPager.setCurrentItem(1, true);
+        runOnUiThread(() ->
+                viewPager.setCurrentItem(1, true));
+
+        AsyncTask.execute(() -> initializeWaveform(waveformSeekBar));
+        updateSlider();
 
         // Save currently opened file to be opened again next time the application starts
         SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(SP_FILE_KEY, newSong.getUri());
         editor.apply();
-
-        handler.postDelayed(() -> initializeWaveform(waveformSeekBar), 10);
-        updateSlider();
     }
 
     @Override

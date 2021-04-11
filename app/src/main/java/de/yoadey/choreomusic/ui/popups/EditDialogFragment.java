@@ -118,7 +118,7 @@ public class EditDialogFragment extends DialogFragment {
             float movedInMs = ((event.getX() - touchDownX) / view.getWidth()) * SURROUND * 2;
             touchEditPosition = editPosition - (int) movedInMs;
             touchEditPosition = Math.min(Math.max(0, touchEditPosition), playbackControl.getCurrentSong().getLength());
-            updateSeekbar();
+            updateSeekBar();
         }
 
         if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -129,7 +129,7 @@ public class EditDialogFragment extends DialogFragment {
         return true;
     }
 
-    private void updateSeekbar() {
+    private void updateSeekBar() {
         WaveformSeekBar waveformSeekBar = rootView.findViewById(R.id.edittrackWaveformSeekBar);
         if (touchEditPosition > 0) {
             waveformSeekBar.setSample(getPartialWaveformData(touchEditPosition - SURROUND, touchEditPosition + SURROUND));
@@ -145,6 +145,9 @@ public class EditDialogFragment extends DialogFragment {
         MainActivity mainActivity = (MainActivity) getActivity();
         assert mainActivity != null;
         int[] waveformData = mainActivity.getWaveformData();
+        if (waveformData == null || waveformData.length == 0) {
+            return new int[]{0};
+        }
         int startIndex = (int) (start * waveformData.length / length);
         int endIndex = (int) (end * waveformData.length / length);
         int[] partial = new int[endIndex - startIndex];

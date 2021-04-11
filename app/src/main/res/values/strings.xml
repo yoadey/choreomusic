@@ -32,7 +32,7 @@
     <string name="introduction">Introduction</string>
     <string name="intro_preptime">If you are training to the song, you probably need some time between each iteration to go back to your starting position. You can add some time before and after the loop to do so. Additionally, the lead-in time also applies if you start a track.</string>
     <string name="intro_loop">Create a loop by selecting the start (A) and the end track (B). As long as there are A and B selected, the loop is active. A and B may be selected on the same track.</string>
-    <string name="intro_split">Split a song with this button into smaller tracks. A track has always only a start, the end is defined by the next track.</string>
+    <string name="intro_split">Split a song with this button at the current position into smaller tracks. A track has always only a start, the end is defined by the next track.</string>
     <string name="intro_loop_title">Loop</string>
     <string name="intro_split_title">Welcome!</string>
     <string name="intro_preptime_title">Preparation time</string>
@@ -42,4 +42,5 @@
     <string name="track_exists_title">Track already exists</string>
     <string name="pref_leadin_track_switch_title">Preparation time for track switch</string>
     <string name="pref_leadin_track_switch_summary">The lead-in time will also be used when switching to another track through direct select or next/previous buttons</string>
+    <string name="waveview_calculating">Calculating...</string>
 </resources>

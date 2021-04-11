@@ -27,7 +27,7 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
     private long currentFile;
 
     public DatabaseHelper(Context context) {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, "tracks-db");
+        DBOpenHelper helper = new DBOpenHelper(context, "tracks-db");
         Database db = helper.getWritableDb();
         //helper.onUpgrade(db, 1, 1);
         daoSession = new DaoMaster(db).newSession();
@@ -65,7 +65,7 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
     }
 
     public void deleteTrack(Track track) {
-        if(track.getFileId() != currentFile) {
+        if (track.getFileId() != currentFile) {
             // Only delete tracks, if they match the current file id!
             return;
         }
@@ -101,7 +101,7 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
 
     @Override
     public void onSongChanged(Song newSong) {
-        if(newSong == null) {
+        if (newSong == null) {
             this.currentFile = -1L;
         } else {
             this.currentFile = newSong.getId();
@@ -123,8 +123,22 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
 
     public void deleteSongByUri(Uri file) {
         Song songToDelete = findSongByUri(file);
-        if(songToDelete != null) {
+        if (songToDelete != null) {
             deleteSong(songToDelete);
+        }
+    }
+
+    private static class DBOpenHelper extends DaoMaster.OpenHelper {
+
+        public DBOpenHelper(Context context, String name) {
+            super(context, name);
+        }
+
+        @Override
+        public void onUpgrade(Database db, int oldVersion, int newVersion) {
+            if (oldVersion <= 1 && newVersion >= 2) {
+                db.execSQL("ALTER TABLE '" + SongDao.TABLENAME + "' ADD '" + SongDao.Properties.Amplitudes.columnName + "' BLOB");
+            }
         }
     }
 }

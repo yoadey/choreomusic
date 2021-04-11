@@ -113,12 +113,16 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
 
     @Override
     public void onPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
-        notifyDataSetChanged();
+        ((MainActivity) context).runOnUiThread(() -> {
+            notifyDataSetChanged();
+        });
     }
 
     @Override
     public void onSongChanged(Song newSong) {
-        notifyDataSetChanged();
+        ((MainActivity) context).runOnUiThread(() -> {
+            notifyDataSetChanged();
+        });
     }
 
     @Override

@@ -33,7 +33,7 @@
     <string name="introduction">Einleitung</string>
     <string name="intro_preptime">Wenn du zu einem Lied trainierst brauchst du wahrscheinlich etwas Zeit, um wieder auf die Startposition zu gehen. Du kannst diese vor und hinter der Schleife hinzufügen. Die Vorlaufzeit gilt auch, wenn du zu einem Track springst.</string>
     <string name="intro_loop">Erstelle eine Schleife indem du den Start (A) und End Track (B) auswählst. Solange A und B selektiert sind ist die Schleife aktiv. A und B können auch beim selben Track ausgewählt werden.</string>
-    <string name="intro_split">Teile ein Lied mit diesem Button in Tracks. Ein Track besteht immer nur aus einem Startpunkt, das Ende ist durch den Beginn des nächsten Tracks definiert.</string>
+    <string name="intro_split">Teile ein Lied mit diesem Button an der aktuellen Position in Tracks. Ein Track besteht immer nur aus einem Startpunkt, das Ende ist durch den Beginn des nächsten Tracks definiert.</string>
     <string name="intro_loop_title">Schleife</string>
     <string name="intro_split_title">Willkommen!</string>
     <string name="intro_preptime_title">Vorbereitungszeit</string>
@@ -43,4 +43,5 @@
     <string name="track_exists_title">Track existiert schon</string>
     <string name="pref_leadin_track_switch_title">Vorbereitungszeit beim Trackwechsel</string>
     <string name="pref_leadin_track_switch_summary">Die Vorbereitungszeit wird auch abgespielt, wenn mittels der Buttons zwischen den Tracks gewechselt wird</string>
+    <string name="waveview_calculating">Berechne...</string>
 </resources>

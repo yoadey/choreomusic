@@ -2,21 +2,21 @@ package de.yoadey.choreomusic.model;
 
 import android.net.Uri;
 
+import org.greenrobot.greendao.DaoException;
 import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Keep;
 import org.greenrobot.greendao.annotation.NotNull;
 import org.greenrobot.greendao.annotation.ToMany;
 
-import java.time.Instant;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.Date;
 import java.util.List;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.DaoException;
 
 @Entity
 @Data
@@ -35,24 +35,31 @@ public class Song {
 
     private long length;
 
+    private byte[] amplitudes;
+
     @NotNull
     private Date lastUsed;
 
-    /** Used to resolve relations */
+    /**
+     * Used to resolve relations
+     */
     @Generated(hash = 2040040024)
     private transient DaoSession daoSession;
 
-    /** Used for active entity operations. */
+    /**
+     * Used for active entity operations.
+     */
     @Generated(hash = 1369727947)
     private transient SongDao myDao;
 
-    @Generated(hash = 264564511)
-    public Song(Long id, @NotNull String uri, String title, long length,
-            @NotNull Date lastUsed) {
+    @Generated(hash = 1763954329)
+    public Song(Long id, @NotNull String uri, String title, long length, byte[] amplitudes,
+                @NotNull Date lastUsed) {
         this.id = id;
         this.uri = uri;
         this.title = title;
         this.length = length;
+        this.amplitudes = amplitudes;
         this.lastUsed = lastUsed;
     }
 
@@ -104,6 +111,14 @@ public class Song {
         this.lastUsed = lastUsed;
     }
 
+    public byte[] getAmplitudes() {
+        return this.amplitudes;
+    }
+
+    public void setAmplitudes(byte[] amplitudes) {
+        this.amplitudes = amplitudes;
+    }
+
     /**
      * To-many relationship, resolved on first access (and after reset).
      * Changes to to-many relations are not persisted, make changes to the target entity.
@@ -126,7 +141,9 @@ public class Song {
         return tracks;
     }
 
-    /** Resets a to-many relationship, making the next get call to query for a fresh result. */
+    /**
+     * Resets a to-many relationship, making the next get call to query for a fresh result.
+     */
     @Generated(hash = 1878244390)
     public synchronized void resetTracks() {
         tracks = null;
@@ -166,6 +183,23 @@ public class Song {
             throw new DaoException("Entity is detached from DAO context");
         }
         myDao.update(this);
+    }
+
+    public int[] getIntAmplitudes() {
+        IntBuffer intBuf = ByteBuffer.wrap(amplitudes)
+                .order(ByteOrder.BIG_ENDIAN)
+                .asIntBuffer();
+        int[] array = new int[intBuf.remaining()];
+        intBuf.get(array);
+        return array;
+    }
+
+    public void setIntAmplitudes(int[] data) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
+        IntBuffer intBuffer = byteBuffer.asIntBuffer();
+        intBuffer.put(data);
+
+        amplitudes = byteBuffer.array();
     }
 
     /** called by internal mechanisms, do not call yourself. */
