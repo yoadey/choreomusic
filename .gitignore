@@ -14,8 +14,9 @@
 .cxx
 local.properties
 release
+bin
 libs
 .idea
-/app
 .project
 .settings
+/app/.classpath
