@@ -44,4 +44,6 @@
     <string name="pref_leadin_track_switch_title">Vorbereitungszeit beim Trackwechsel</string>
     <string name="pref_leadin_track_switch_summary">Die Vorbereitungszeit wird auch abgespielt, wenn mittels der Buttons zwischen den Tracks gewechselt wird</string>
     <string name="waveview_calculating">Berechne...</string>
+    <string name="pref_detailed_waveform_switch_title">Suchleiste detailiert</string>
+    <string name="pref_detailed_waveform_switch_summary">Die Lautstärke in der Suchleiste wird so detailiert angezeigt wie möglich</string>
 </resources>

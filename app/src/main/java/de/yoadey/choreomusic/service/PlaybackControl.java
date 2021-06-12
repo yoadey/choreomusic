@@ -44,6 +44,7 @@ import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.utils.Constants;
 import de.yoadey.choreomusic.utils.Utils;
 import lombok.Getter;
 
@@ -54,7 +55,7 @@ import lombok.Getter;
 public class PlaybackControl extends Service implements Playlist.PlaylistListener {
     public static final String PLAYBACK_CHANNEL_ID = "PlaybackServiceForegroundServiceChannel";
     public static final int PLAYBACK_NOTIFICATION_ID = 1;
-    public static final String MEDIA_SESSION_TAG = "ChoreMusic";
+    public static final String MEDIA_SESSION_TAG = "ChoreoMusic";
     /**
      * Action for an Intent. Should be called to start the service.
      */
@@ -63,15 +64,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * Action for an Intent. Should be called to stop the service.
      */
     public static final String STOP_ACTION = "StopService";
-    private static final String SP_PLAYBACK = "PLAYBACK_CONTROL";
-    /**
-     * Shared property name for the last last leadInTime
-     */
-    private static final String SP_LEAD_IN_TIME = "LEAD_IN_TIME";
-    /**
-     * Shared property name for the last last leadOutTime
-     */
-    private static final String SP_LEAD_OUT_TIME = "LEAD_OUT_TIME";
     /**
      * Time in ms in which the previous button jumps the previous track instead to the beginning
      * of this track
@@ -141,9 +133,9 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     public void onCreate() {
         super.onCreate();
 
-        SharedPreferences sharedPreferences = getSharedPreferences(SP_PLAYBACK, MODE_PRIVATE);
-        leadInTime = sharedPreferences.getLong(SP_LEAD_IN_TIME, 0);
-        leadOutTime = sharedPreferences.getLong(SP_LEAD_OUT_TIME, 0);
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
+        leadInTime = sharedPreferences.getLong(Constants.SP_KEY_LEAD_IN_TIME, 0);
+        leadOutTime = sharedPreferences.getLong(Constants.SP_KEY_LEAD_OUT_TIME, 0);
 
         player = new SimpleExoPlayer.Builder(this).build();
         player.prepare();
@@ -379,18 +371,18 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     public void setLeadInTime(long leadInTime) {
         this.leadInTime = leadInTime;
 
-        SharedPreferences sharedPreferences = getSharedPreferences(SP_PLAYBACK, MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putLong(SP_LEAD_IN_TIME, leadInTime);
+        editor.putLong(Constants.SP_KEY_LEAD_IN_TIME, leadInTime);
         editor.apply();
     }
 
     public void setLeadOutTime(long leadOutTime) {
         this.leadOutTime = leadOutTime;
 
-        SharedPreferences sharedPreferences = getSharedPreferences(SP_PLAYBACK, MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putLong(SP_LEAD_OUT_TIME, leadOutTime);
+        editor.putLong(Constants.SP_KEY_LEAD_OUT_TIME, leadOutTime);
         editor.apply();
     }
 
@@ -401,7 +393,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     public void previousTrack() {
         long position = player.getCurrentPosition();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean preTimeSwitchTrack = prefs.getBoolean("preTimeSwitchTrack", true);
+        boolean preTimeSwitchTrack = prefs.getBoolean(Constants.SP_KEY_SWITCH_TRACK, true);
         if (preTimeSwitchTrack) {
             position += leadInTime + 100;
         }

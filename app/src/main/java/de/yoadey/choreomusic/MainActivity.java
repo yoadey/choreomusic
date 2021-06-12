@@ -15,7 +15,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -58,6 +60,7 @@ import de.yoadey.choreomusic.ui.popups.SpeedDialogFragment;
 import de.yoadey.choreomusic.ui.settings.SettingsActivity;
 import de.yoadey.choreomusic.ui.tracks.SongsTracksAdapter;
 import de.yoadey.choreomusic.utils.AmplitudesHelper;
+import de.yoadey.choreomusic.utils.Constants;
 import de.yoadey.choreomusic.utils.DatabaseHelper;
 import de.yoadey.choreomusic.utils.Id3TagsHandler;
 import de.yoadey.choreomusic.utils.Utils;
@@ -77,10 +80,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
      * Code to identify the save file intent in the callback
      */
     private static final int SAVE_FILE_CODE = 2;
-    /**
-     * Shared property name for the last opened music file
-     */
-    private static final String SP_FILE_KEY = "MUSIC_FILE";
+
     private final Object threadRunningLock = new Object();
     private final Handler handler = HandlerCompat.createAsync(Looper.myLooper());
     private boolean threadRunning;
@@ -249,6 +249,13 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         playbackControl = null;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        WaveformSeekBar waveformSeekBar = findViewById(R.id.waveformSeekBar);
+        configureWaveform(waveformSeekBar);
+    }
+
     public synchronized void openFile(Uri file) {
         // playbackControl might not yet be connected, but is required. Only execute, once
         // playbackControl is connected
@@ -326,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                 onIsPlayingChanged(playbackControl.isPlaying());
             } else {
                 SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
-                String fileUri = sharedPreferences.getString(SP_FILE_KEY, null);
+                String fileUri = sharedPreferences.getString(Constants.SP_KEY_FILE, null);
                 if (fileUri != null) {
                     Uri uri = Uri.parse(fileUri);
                     openFile(uri);
@@ -365,6 +372,20 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                 textView.setText("");
             });
         });
+    }
+
+    private void configureWaveform(WaveformSeekBar waveformSeekBar) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        if(preferences.getBoolean(Constants.SP_KEY_DETAILED_WAVEFORM, true)) {
+            waveformSeekBar.setWaveGap(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 0, displayMetrics));
+            waveformSeekBar.setWaveWidth(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 1, displayMetrics));
+            waveformSeekBar.setWaveCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 0, displayMetrics));
+        } else {
+            waveformSeekBar.setWaveGap(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, displayMetrics));
+            waveformSeekBar.setWaveWidth(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, displayMetrics));
+            waveformSeekBar.setWaveCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, displayMetrics));
+        }
     }
 
     /*-----------------------------------------------------
@@ -593,7 +614,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         // Save currently opened file to be opened again next time the application starts
         SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(SP_FILE_KEY, newSong.getUri());
+        editor.putString(Constants.SP_KEY_FILE, newSong.getUri());
         editor.apply();
     }
 

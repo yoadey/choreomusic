@@ -31,9 +31,7 @@ public class AmplitudesHelper {
         Amplituda amplituda = new Amplituda(context);
         try {
             amplituda.fromPath(localFile.getPath())
-                    .amplitudesAsList(cb -> {
-                        sample[0] = cb.stream().mapToInt(i -> i).toArray();
-                    });
+                    .amplitudesAsList(cb -> sample[0] = cb.stream().mapToInt(i -> i).toArray());
         } catch (Exception e) {
             Log.w("AmplitudesHelper", "Could not extract waveform data from default method, fallback to other method");
             try {

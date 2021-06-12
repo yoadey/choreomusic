@@ -43,4 +43,6 @@
     <string name="pref_leadin_track_switch_title">Preparation time for track switch</string>
     <string name="pref_leadin_track_switch_summary">The lead-in time will also be used when switching to another track through direct select or next/previous buttons</string>
     <string name="waveview_calculating">Calculating...</string>
+    <string name="pref_detailed_waveform_switch_title">Seekbar detailed</string>
+    <string name="pref_detailed_waveform_switch_summary">The seekbar volume waves should be presented with as much details as possible</string>
 </resources>
