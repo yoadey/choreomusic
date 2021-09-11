@@ -15,8 +15,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
-import com.google.android.exoplayer2.DefaultControlDispatcher;
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ForwardingPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -80,6 +80,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private boolean threadRunning;
     // Media player and notification stuff
     private ExoPlayer player;
+    private Handler exoHandler;
     private MediaSessionCompat mediaSession;
     private MediaSessionConnector mediaSessionConnector;
     private PlayerNotificationManager playerNotificationManager;
@@ -139,9 +140,10 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
         player = new SimpleExoPlayer.Builder(this).build();
         player.prepare();
+        exoHandler = new Handler(player.getApplicationLooper());
         player.setRepeatMode(Player.REPEAT_MODE_ONE);
 
-        player.addListener(new Player.EventListener() {
+        player.addListener(new Player.Listener() {
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 if (isPlaying) {
@@ -169,13 +171,10 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if (playerNotificationManager != null) {
             return;
         }
-        playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(
-                getApplicationContext(),
-                PLAYBACK_CHANNEL_ID,
-                R.string.playback_channel_name,
-                R.string.playback_channel_name,
-                PLAYBACK_NOTIFICATION_ID,
-                new PlayerNotificationManager.MediaDescriptionAdapter() {
+        playerNotificationManager = new PlayerNotificationManager.Builder(getApplicationContext(), PLAYBACK_NOTIFICATION_ID, PLAYBACK_CHANNEL_ID)
+                .setChannelNameResourceId( R.string.playback_channel_name)
+                .setChannelDescriptionResourceId(R.string.playback_channel_name)
+                .setMediaDescriptionAdapter(new PlayerNotificationManager.MediaDescriptionAdapter() {
                     @NotNull
                     @Override
                     public String getCurrentContentTitle(@NotNull Player player) {
@@ -204,23 +203,21 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     public Bitmap getCurrentLargeIcon(@NotNull Player player, @NotNull PlayerNotificationManager.BitmapCallback callback) {
                         return null;//((BitmapDrawable) getApplicationContext().getResources().getDrawable(R.drawable.ic_stat_name, null)).getBitmap();
                     }
-                }
-        );
-        playerNotificationManager.setPlayer(player);
-
-        playerNotificationManager.setControlDispatcher(new DefaultControlDispatcher() {
+                })
+                .build();
+        ForwardingPlayer forwardingPlayer = new ForwardingPlayer(player) {
             @Override
-            public boolean dispatchPrevious(Player player) {
+            public void seekToPrevious() {
                 previousTrack();
-                return true;
             }
 
             @Override
-            public boolean dispatchNext(Player player) {
+            public void seekToNext() {
                 nextTrack();
-                return true;
             }
-        });
+        };
+        playerNotificationManager.setPlayer(forwardingPlayer);
+
         playerNotificationManager.setMediaSessionToken(mediaSession.getSessionToken());
     }
 
@@ -305,7 +302,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void play() {
         setSpeed(speed == 0.0f ? 1.0f : speed);
-        player.play();
+        exoHandler.post(() -> player.play());
         startLoopingThread();
     }
 
@@ -314,12 +311,12 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     public void stop() {
-        player.pause();
+        exoHandler.post(() -> player.pause());
         seekTo(0);
     }
 
     public void seekTo(int progress) {
-        player.seekTo(progress);
+        exoHandler.post(() -> player.seekTo(progress));
         checkTrack();
     }
 
@@ -333,16 +330,18 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void setSpeed(float speed) {
         this.speed = speed;
-        player.setPlaybackParameters(new PlaybackParameters(speed));
+        exoHandler.post(() -> player.setPlaybackParameters(new PlaybackParameters(speed)));
     }
 
     public void setLoopStart(Track loopStart) {
         this.loopStart = loopStart;
-        if (isLoopActive()) {
-            player.setRepeatMode(Player.REPEAT_MODE_ONE);
-        } else {
-            player.setRepeatMode(Player.REPEAT_MODE_OFF);
-        }
+        exoHandler.post(() -> {
+            if (isLoopActive()) {
+                player.setRepeatMode(Player.REPEAT_MODE_ONE);
+            } else {
+                player.setRepeatMode(Player.REPEAT_MODE_OFF);
+            }
+        });
     }
 
     public long getLoopStartPosition() {
@@ -354,11 +353,13 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void setLoopEnd(Track loopEnd) {
         this.loopEnd = loopEnd;
-        if (isLoopActive()) {
-            player.setRepeatMode(Player.REPEAT_MODE_ONE);
-        } else {
-            player.setRepeatMode(Player.REPEAT_MODE_OFF);
-        }
+        exoHandler.post(() -> {
+            if (isLoopActive()) {
+                player.setRepeatMode(Player.REPEAT_MODE_ONE);
+            } else {
+                player.setRepeatMode(Player.REPEAT_MODE_OFF);
+            }
+        });
     }
 
     public long getLoopEndPosition() {
@@ -507,18 +508,24 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if (initialized) {
             stop();
         }
-        MediaItem mediaItem = MediaItem.fromUri(song.getParsedUri());
-        player.setMediaItem(mediaItem);
-        // To allow next buttons in notification
-        player.addMediaItem(mediaItem);
-        currentSong = song;
-        player.prepare();
-        initialized = true;
-        fireEvent(l -> l.onSongChanged(currentSong));
-        // Reset tracks, as the file might be opened before and the tracks may have changed
-        song.resetTracks();
-        List<Track> tracks = song.getTracks();
-        playlist.reset(tracks);
+
+        // In case the song got deleted on disk, delete it from our database
+        Uri parsedUri = song.getParsedUri();
+        MediaItem mediaItem = MediaItem.fromUri(parsedUri);
+
+        exoHandler.post(() -> {
+            player.setMediaItem(mediaItem);
+            // To allow next buttons in notification
+            player.addMediaItem(mediaItem);
+            currentSong = song;
+            player.prepare();
+            initialized = true;
+            fireEvent(l -> l.onSongChanged(currentSong));
+            // Reset tracks, as the file might be opened before and the tracks may have changed
+            song.resetTracks();
+            List<Track> tracks = song.getTracks();
+            playlist.reset(tracks);
+        });
     }
 
     @Override

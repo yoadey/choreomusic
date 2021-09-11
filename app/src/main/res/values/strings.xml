@@ -45,4 +45,6 @@
     <string name="waveview_calculating">Calculating...</string>
     <string name="pref_detailed_waveform_switch_title">Seekbar detailed</string>
     <string name="pref_detailed_waveform_switch_summary">The seekbar volume waves should be presented with as much details as possible</string>
+    <string name="save_not_supported_title">Save not supported</string>
+    <string name="save_not_supported_description">Save with chapters is not supported for this file type!</string>
 </resources>
