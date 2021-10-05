@@ -10,6 +10,7 @@ import android.os.Binder;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.annotation.Nullable;
@@ -37,15 +38,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.utils.Constants;
 import de.yoadey.choreomusic.utils.Utils;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import lombok.Getter;
 
 /**
@@ -69,6 +73,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * of this track
      */
     private static final long PREVIOUS_TRACK_DISTANCE = 5000;
+
+    public static final long BACKGROUND_THREAD_DELAY = 100;
     /**
      * Background thread for handling the loop
      */
@@ -85,6 +91,14 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private MediaSessionConnector mediaSessionConnector;
     private PlayerNotificationManager playerNotificationManager;
     private boolean initialized;
+
+    /** Observe the playback time, so the UI can react to it.  */
+    public Observable<Long> playbackProgressObservable =
+            Observable.interval(BACKGROUND_THREAD_DELAY, TimeUnit.MILLISECONDS, AndroidSchedulers.from(Looper.myLooper()))
+                    .map(t -> player != null ? player.getCurrentPosition() : 0)
+                    .distinctUntilChanged();
+    private Disposable progressStateObserverDisposable;
+
     /**
      * The currently playing song.
      */
@@ -120,6 +134,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     // Current track only knows about its start time, not its end time
     @Getter
     private Track currentTrack;
+    @Getter
     private Track nextTrack;
 
     private File localFile;
@@ -159,6 +174,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 }
             }
         });
+        progressStateObserverDisposable = playbackProgressObservable.subscribe(progress -> fireEvent(l -> l.onProgressChanged(progress.intValue())));
 
         mediaSession = new MediaSessionCompat(this, MEDIA_SESSION_TAG);
 
@@ -228,6 +244,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         playerNotificationManager.setPlayer(null);
         player.release();
         player = null;
+        progressStateObserverDisposable.dispose();
 
         super.onDestroy();
     }
@@ -303,7 +320,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     public void play() {
         setSpeed(speed == 0.0f ? 1.0f : speed);
         exoHandler.post(() -> player.play());
-        startLoopingThread();
     }
 
     public void pause() {
@@ -427,6 +443,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if (preTimeSwitchTrack) {
             position -= leadInTime;
         }
+        position = Math.max(0, position);
 
         player.seekTo(position);
         currentTrack = playlist.getTrackForPosition(position);
@@ -437,7 +454,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     /**
-     * Background thread to update the seekbar, timer and manage the loop.
+     * Background thread to manage the loop and track. Must be more exact than UI updates, therefore
+     * the observer is not sufficient.
      */
     private void startLoopingThread() {
         synchronized (threadRunningLock) {
@@ -455,7 +473,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 // Restart handler
                 if (player.isPlaying()) {
                     // If the loop cycle should end before normal delay, then update it earlier
-                    long delay = Math.min(MainActivity.BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
+                    long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
                     delay = Math.max(0, delay);
                     handler.postDelayed(this, delay);
                 } else {
@@ -464,7 +482,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     }
                 }
             }
-        }, MainActivity.BACKGROUND_THREAD_DELAY);
+        }, BACKGROUND_THREAD_DELAY);
     }
 
     /**
@@ -497,11 +515,12 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             return;
         }
         if (localFile != null) {
+            //noinspection ResultOfMethodCallIgnored
             localFile.delete();
         }
         if (song == null) {
             this.currentSong = null;
-            playlist.reset(Collections.emptyList());
+            playlist.reset(Collections.emptyList(), Integer.MAX_VALUE);
             fireEvent(l -> l.onSongChanged(null));
             return;
         }
@@ -524,7 +543,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             // Reset tracks, as the file might be opened before and the tracks may have changed
             song.resetTracks();
             List<Track> tracks = song.getTracks();
-            playlist.reset(tracks);
+            playlist.reset(tracks, song.getLength());
         });
     }
 
@@ -556,6 +575,15 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
 
         default void onTrackChanged(Track newTrack) {
+        }
+
+        /**
+         * Called, whenever the position of the track is changed, but at least 100ms between each
+         * invocation.
+         *
+         * @param progress the current position in the song.
+         */
+        default void onProgressChanged(int progress) {
         }
 
         default void onIsPlayingChanged(boolean isPlaying) {

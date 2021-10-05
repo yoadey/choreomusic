@@ -26,7 +26,7 @@ import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.service.PlaybackControl;
 
-public class EditDialogFragment extends DialogFragment {
+public class EditDialogFragment extends DialogFragment implements PlaybackControl.PlaybackListener {
 
     private static final int SURROUND = 5000;
 
@@ -70,6 +70,7 @@ public class EditDialogFragment extends DialogFragment {
 
         MaterialButton play = rootView.findViewById(R.id.edittrackPlaypause);
         play.setOnClickListener(v -> onPlayChanged());
+        playbackControl.addPlaybackListener(this);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         return builder
@@ -90,6 +91,7 @@ public class EditDialogFragment extends DialogFragment {
         if (playSample) {
             playbackControl.pause();
         }
+        playbackControl.deletePlaybackListener(this);
         super.onDismiss(dialog);
     }
 
@@ -169,7 +171,6 @@ public class EditDialogFragment extends DialogFragment {
             play.setIconResource(R.drawable.baseline_stop_24);
             seekbar.setProgress(50);
             playbackControl.play();
-            startLoopingThread();
         } else {
             playSample = false;
             playbackControl.pause();
@@ -179,43 +180,22 @@ public class EditDialogFragment extends DialogFragment {
         }
     }
 
-    /**
-     * Background thread to update the slider and timer
-     */
-    private void startLoopingThread() {
-        synchronized (this) {
-            if (threadRunning) {
-                return;
+    @Override
+    public void onProgressChanged(int progress) {
+        MaterialButton play = rootView.findViewById(R.id.edittrackPlaypause);
+        WaveformSeekBar seekbar = rootView.findViewById(R.id.edittrackWaveformSeekBar);
+        if (playbackControl.isPlaying() && playbackControl.getCurrentPosition() < editPosition + SURROUND) {
+            long position = (playbackControl.getCurrentPosition() - editPosition) * 50 / SURROUND + 50;
+            seekbar.setProgress((int) position);
+        } else {
+            playSample = false;
+            if (playbackControl.isPlaying()) {
+                playbackControl.pause();
+                playbackControl.seekTo((int) editPosition);
+                play.setIconResource(R.drawable.baseline_play_arrow_24);
+                seekbar.setProgress(50);
             }
-
-            threadRunning = true;
         }
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                MaterialButton play = rootView.findViewById(R.id.edittrackPlaypause);
-                WaveformSeekBar seekbar = rootView.findViewById(R.id.edittrackWaveformSeekBar);
-                if (playbackControl.isPlaying() && playbackControl.getCurrentPosition() < editPosition + SURROUND) {
-                    long position = (playbackControl.getCurrentPosition() - editPosition) * 50 / SURROUND + 50;
-                    seekbar.setProgress((int) position);
-                } else {
-                    playSample = false;
-                    if (playbackControl.isPlaying()) {
-                        playbackControl.pause();
-                        playbackControl.seekTo((int) editPosition);
-                        play.setIconResource(R.drawable.baseline_play_arrow_24);
-                        seekbar.setProgress(50);
-                    }
-                }
-
-                // Restart handler
-                synchronized (this) {
-                    if (playSample) {
-                        handler.postDelayed(this, MainActivity.BACKGROUND_THREAD_DELAY);
-                    } else {
-                        threadRunning = false;
-                    }
-                }
-            }
-        }, MainActivity.BACKGROUND_THREAD_DELAY);
     }
+
 }

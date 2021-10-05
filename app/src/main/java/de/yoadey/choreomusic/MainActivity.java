@@ -11,9 +11,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -28,7 +26,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
-import androidx.core.os.HandlerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -69,14 +66,7 @@ import lombok.Getter;
 
 public class MainActivity extends AppCompatActivity implements PlaybackControl.PlaybackListener, ServiceConnection {
 
-    /**
-     * Number of milliseconds to delay, before the background thread is called again to update the UI components and the loop
-     */
-    public static final int BACKGROUND_THREAD_DELAY = 100;
-
-    private final Object threadRunningLock = new Object();
-    private final Handler handler = HandlerCompat.createAsync(Looper.myLooper());
-    private boolean threadRunning;
+    private static final float VISIBLE_TRACK_DURATION = 120_000F;
 
     private DatabaseHelper databaseHelper;
     private SongsTracksAdapter songsTracksAdapter;
@@ -502,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         ifPlaybackControlInitialized(() -> {
             try (MetadataHandler mdHandler = MetadataHandler.open(getApplicationContext(), playbackControl.getLocalFile())) {
                 List<Track> tracks = mdHandler.readChapters();
-                playlist.reset(tracks);
+                playlist.reset(tracks, playbackControl.getCurrentSong().getLength());
             }
         });
     }
@@ -562,33 +552,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         }
     }
 
-    /**
-     * Background thread to update the slider and timer
-     */
-    private void startLoopingThread() {
-        synchronized (threadRunningLock) {
-            if (threadRunning) {
-                return;
-            }
-
-            threadRunning = true;
-        }
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                updateSlider();
-
-                // Restart handler
-                synchronized (threadRunningLock) {
-                    if (playbackControl.isPlaying()) {
-                        handler.postDelayed(this, BACKGROUND_THREAD_DELAY);
-                    } else {
-                        threadRunning = false;
-                    }
-                }
-            }
-        }, BACKGROUND_THREAD_DELAY);
-    }
-
     @SuppressLint("DefaultLocale")
     private void updateSlider() {
         long position;
@@ -643,14 +606,20 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     }
 
     @Override
+    public void onProgressChanged(int progress) {
+        updateSlider();
+    }
+
+    @Override
     public void onIsPlayingChanged(boolean isPlaying) {
         MaterialButton play = findViewById(R.id.playpause);
-        if (isPlaying) {
-            play.setIconResource(R.drawable.baseline_pause_24);
-            startLoopingThread();
-        } else {
-            play.setIconResource(R.drawable.baseline_play_arrow_24);
-        }
+        runOnUiThread(() -> {
+            if (isPlaying) {
+                play.setIconResource(R.drawable.baseline_pause_24);
+            } else {
+                play.setIconResource(R.drawable.baseline_play_arrow_24);
+            }
+        });
     }
 
     /**
