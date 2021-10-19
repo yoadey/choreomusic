@@ -66,8 +66,6 @@ import lombok.Getter;
 
 public class MainActivity extends AppCompatActivity implements PlaybackControl.PlaybackListener, ServiceConnection {
 
-    private static final float VISIBLE_TRACK_DURATION = 120_000F;
-
     private DatabaseHelper databaseHelper;
     private SongsTracksAdapter songsTracksAdapter;
 
@@ -130,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         View speed = findViewById(R.id.speed);
         speed.setOnClickListener(v -> openSpeedDialog());
 
-        View bookmark = findViewById(R.id.addMark);
+        View bookmark = findViewById(R.id.add_track);
         bookmark.setOnClickListener(v -> addTrack());
 
         View next = findViewById(R.id.next);
@@ -350,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     private void configureWaveform(WaveformSeekBar waveformSeekBar) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        if (preferences.getBoolean(Constants.SP_KEY_DETAILED_WAVEFORM, true)) {
+        if (preferences.getBoolean(Constants.SP_KEY_DETAILED_WAVEFORM, false)) {
             waveformSeekBar.setWaveGap(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 0, displayMetrics));
             waveformSeekBar.setWaveWidth(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 1, displayMetrics));
             waveformSeekBar.setWaveCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 0, displayMetrics));
@@ -572,6 +570,21 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         Intent stopIntent = new Intent(getApplicationContext(), PlaybackControl.class);
         stopIntent.setAction(action);
         startService(stopIntent);
+    }
+
+    @Override
+    public void onSpeedChanged(float newSpeed) {
+        MaterialButton button = findViewById(R.id.speed);
+        TextView textView = findViewById(R.id.speedText);
+        runOnUiThread(() -> {
+            if (newSpeed != 1F) {
+                button.setIconTintResource(R.color.secondary);
+                textView.setText(String.format(Locale.ENGLISH, "%.2f", newSpeed));
+            } else {
+                button.setIconTintResource(R.color.primary);
+                textView.setText("");
+            }
+        });
     }
 
     @Override

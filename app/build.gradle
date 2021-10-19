@@ -15,8 +15,8 @@ android {
         applicationId "de.yoadey.choreomusic"
         minSdkVersion 26
         targetSdkVersion 30
-        versionCode 5
-        versionName "0.5"
+        versionCode 7
+        versionName "0.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,7 +66,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.16'
 
     // Waveform library
-    implementation 'com.github.massoudss:waveformSeekBar:3.1.0'
+    implementation 'com.github.massoudss:waveformSeekBar:4.0.1'
     implementation 'com.github.lincollincol:Amplituda:2.1.0'
 
     // Media libraries

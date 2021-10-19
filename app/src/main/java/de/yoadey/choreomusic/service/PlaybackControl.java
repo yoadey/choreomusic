@@ -347,6 +347,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     public void setSpeed(float speed) {
         this.speed = speed;
         exoHandler.post(() -> player.setPlaybackParameters(new PlaybackParameters(speed)));
+        fireEvent(l -> l.onSpeedChanged(speed));
     }
 
     public void setLoopStart(Track loopStart) {
@@ -358,6 +359,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 player.setRepeatMode(Player.REPEAT_MODE_OFF);
             }
         });
+        fireEvent(l -> l.onLoopChanged(this.loopStart, this.loopEnd));
     }
 
     public long getLoopStartPosition() {
@@ -376,6 +378,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 player.setRepeatMode(Player.REPEAT_MODE_OFF);
             }
         });
+        fireEvent(l -> l.onLoopChanged(this.loopStart, this.loopEnd));
     }
 
     public long getLoopEndPosition() {
@@ -448,9 +451,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         player.seekTo(position);
         currentTrack = playlist.getTrackForPosition(position);
         nextTrack = playlist.getNextTrack(currentTrack);
-        synchronized (listeners) {
-            fireEvent(l -> l.onTrackChanged(currentTrack));
-        }
+        fireEvent(l -> l.onTrackChanged(currentTrack));
     }
 
     /**
@@ -587,6 +588,20 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
 
         default void onIsPlayingChanged(boolean isPlaying) {
+        }
+
+        /**
+         * Called, whenever the loop changes or is deactivated. If not both a and b are set, no
+         * loop is active.
+         *
+         * @param a the start track of the loop if set, otherwise null
+         * @param b the end track of the loop if set, otherwise null
+         */
+        default void onLoopChanged(Track a, Track b) {
+        }
+
+        default void onSpeedChanged(float newSpeed) {
+
         }
     }
 

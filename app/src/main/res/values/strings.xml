@@ -42,9 +42,24 @@
     <string name="track_exists_title">Track already exists</string>
     <string name="pref_leadin_track_switch_title">Preparation time for track switch</string>
     <string name="pref_leadin_track_switch_summary">The lead-in time will also be used when switching to another track through direct select or next/previous buttons</string>
-    <string name="waveview_calculating">Calculating...</string>
+    <string name="waveview_calculating">Calculating…</string>
     <string name="pref_detailed_waveform_switch_title">Seekbar detailed</string>
     <string name="pref_detailed_waveform_switch_summary">The seekbar volume waves should be presented with as much details as possible</string>
     <string name="save_not_supported_title">Save not supported</string>
     <string name="save_not_supported_description">Save with chapters is not supported for this file type!</string>
+    <string name="main_area_description">Track selection</string>
+    <string name="speed_slider_description">Track speed</string>
+    <string name="loop_description">Loop</string>
+    <string name="add_track_description">Add track</string>
+    <string name="speed_description">Speed</string>
+    <string name="previous_description">Previous track</string>
+    <string name="stop_description">Stop</string>
+    <string name="playpause_description">Play</string>
+    <string name="next_description">Next track</string>
+    <string name="prepostPrePlus_description">Increase lead in time</string>
+    <string name="prepostPreMinus_description">Decrease lead in time</string>
+    <string name="prepostPostMinus_description">Decrease lead out time</string>
+    <string name="prepostPostPlus_description">Increase lead out time</string>
+    <string name="prepostPreTime_description">Lead in time</string>
+    <string name="prepostPostTime_description">Lead out time</string>
 </resources>

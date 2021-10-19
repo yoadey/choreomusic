@@ -15,6 +15,8 @@ import com.google.android.material.slider.Slider;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.service.PlaybackControl;
 
@@ -37,7 +39,7 @@ public class SpeedDialogFragment extends DialogFragment {
         speed = playbackControl.getSpeed();
         TextView speedTextView = rootView.findViewById(R.id.speedTextView);
         speedTextView.setText(String.format("%.2f", playbackControl.getSpeed()));
-        Slider speedSlider = rootView.findViewById(R.id.speedSlider);
+        Slider speedSlider = rootView.findViewById(R.id.speed_slider);
         speedSlider.setValue(speedToPosition(playbackControl.getSpeed()));
         speedSlider.addOnChangeListener((slider, progress, fromUser) -> {
             if (fromUser) {
@@ -66,7 +68,6 @@ public class SpeedDialogFragment extends DialogFragment {
                 .create();
     }
 
-    @SuppressLint("DefaultLocale")
     private void changeSpeed(Slider speedSeeker, TextView textView, float change) {
         float newSpeed = speed + change;
         if (change == 0) {
@@ -75,7 +76,7 @@ public class SpeedDialogFragment extends DialogFragment {
         newSpeed = Math.max(0.5f, newSpeed);
         newSpeed = Math.min(2.0f, newSpeed);
         speed = newSpeed;
-        textView.setText(String.format("%.2f", newSpeed));
+        textView.setText(String.format(Locale.ENGLISH, "%.2f", newSpeed));
         speedSeeker.setValue(speedToPosition(newSpeed));
     }
 

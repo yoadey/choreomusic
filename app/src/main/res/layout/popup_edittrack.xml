@@ -41,13 +41,13 @@
                 android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                app:wave_background_color="@color/lightyellow"
+                app:wave_background_color="@color/primary"
                 app:wave_corner_radius="0dp"
                 app:wave_gap="0dp"
                 app:wave_gravity="center"
-                app:wave_min_height="5dp"
+                app:wave_min_height="2dp"
                 app:wave_progress="50"
-                app:wave_progress_color="@color/orange_main"
+                app:wave_progress_color="@color/secondary"
                 app:wave_width="1px" />
 
             <com.google.android.material.button.MaterialButton

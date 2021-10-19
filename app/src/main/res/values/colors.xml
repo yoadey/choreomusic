@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="primary">#FFC5C2B2</color>
+    <color name="secondary">#FFC56909</color>
 
-    <color name="about_background_color">@color/darkblue</color>
-    <color name="about_text_color">@color/lightyellow</color>
+    <color name="activated_text">#FF000000</color>
+    <color name="deactivated_text">#FFFFFFFF</color>
 
-    <color name="darkblue">#FF090D15</color>
-    <color name="lightgrey">#3C3C3C</color>
-    <color name="lightyellow2">#88887C</color>
+    <color name="deactivated_background">#88887C</color>
+    <color name="selected_track">#3C3C3C</color>
+    <color name="slider_inactive">#FF505153</color>
 
-
-    <color name="lightyellow">#FFC5C2B2</color>
-    <color name="orange_main">#FFC56909</color>
-    <color name="lightorange">#8F5900</color>
-
-    <color name="orange_back">#FF505153</color>
+    <color name="about_background_color">#FF090D15</color>
+    <color name="about_text_color">@color/primary</color>
 </resources>
