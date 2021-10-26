@@ -239,6 +239,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     @Override
     public void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
         mediaSession.release();
         mediaSessionConnector.setPlayer(null);
         playerNotificationManager.setPlayer(null);
@@ -468,18 +469,25 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
         handler.postDelayed(new Runnable() {
             public void run() {
-                checkLoop();
-                checkTrack();
+                try {
+                    checkLoop();
+                    checkTrack();
 
-                // Restart handler
-                if (player.isPlaying()) {
-                    // If the loop cycle should end before normal delay, then update it earlier
-                    long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
-                    delay = Math.max(0, delay);
-                    handler.postDelayed(this, delay);
-                } else {
-                    synchronized (threadRunningLock) {
-                        threadRunning = false;
+                    // Restart handler
+                    if (player.isPlaying()) {
+                        // If the loop cycle should end before normal delay, then update it earlier
+                        long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
+                        delay = Math.max(0, delay);
+                        handler.postDelayed(this, delay);
+                    } else {
+                        synchronized (threadRunningLock) {
+                            threadRunning = false;
+                        }
+                    }
+                } catch(NullPointerException e) {
+                    // Only needs to be handled, if the instance is not already destroyed.
+                    if(player != null) {
+                        throw e;
                     }
                 }
             }
