@@ -239,14 +239,24 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     @Override
     public void onDestroy() {
-        mediaSession.release();
-        mediaSessionConnector.setPlayer(null);
-        playerNotificationManager.setPlayer(null);
-        player.release();
-        player = null;
-        progressStateObserverDisposable.dispose();
+        synchronized(this) {
+            if (mediaSession != null) {
+                mediaSession.release();
+                mediaSessionConnector.setPlayer(null);
+            }
+            if (playerNotificationManager != null) {
+                playerNotificationManager.setPlayer(null);
+            }
+            if (player != null) {
+                player.release();
+                player = null;
+            }
+            if (progressStateObserverDisposable != null) {
+                progressStateObserverDisposable.dispose();
+            }
 
-        super.onDestroy();
+            super.onDestroy();
+        }
     }
 
     @Override
@@ -468,18 +478,20 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
         handler.postDelayed(new Runnable() {
             public void run() {
-                checkLoop();
-                checkTrack();
+                synchronized(this) {
+                    if (player != null && player.isPlaying()) {
+                        checkLoop();
+                        checkTrack();
 
-                // Restart handler
-                if (player.isPlaying()) {
-                    // If the loop cycle should end before normal delay, then update it earlier
-                    long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
-                    delay = Math.max(0, delay);
-                    handler.postDelayed(this, delay);
-                } else {
-                    synchronized (threadRunningLock) {
-                        threadRunning = false;
+                        // If the loop cycle should end before normal delay, then update it earlier
+                        long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
+                        delay = Math.max(0, delay);
+                        // Restart handler
+                        handler.postDelayed(this, delay);
+                    } else {
+                        synchronized (threadRunningLock) {
+                            threadRunning = false;
+                        }
                     }
                 }
             }
@@ -490,10 +502,16 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * Check, whether a loop is active and if yes, keeps the song in the area of this loop.
      */
     private void checkLoop() {
+        if(player == null) {
+            // This should not occur, and if it does, only if the service is already disposed, but
+            // handle nevertheless
+            return;
+        }
         // Update loop
         if (isLoopActive()) {
-            if (player.getCurrentPosition() < getLoopStartPosition() || player.getCurrentPosition() >= getLoopEndPosition()) {
-                player.seekTo(getLoopStartPosition());
+            long loopStart = getLoopStartPosition();
+            if (player.getCurrentPosition() < loopStart - 500 || player.getCurrentPosition() >= getLoopEndPosition()) {
+                player.seekTo(loopStart);
             }
         }
     }
@@ -503,7 +521,12 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * to another one.
      */
     private void checkTrack() {
-        if (currentTrack == null || player.getCurrentPosition() < currentTrack.getPosition() ||
+        if(player == null) {
+            // This should not occur, and if it does, only if the service is already disposed, but
+            // handle nevertheless
+            return;
+        }
+        if (currentTrack == null || nextTrack == null || player.getCurrentPosition() < currentTrack.getPosition() ||
                 player.getCurrentPosition() > nextTrack.getPosition()) {
             currentTrack = playlist.getTrackForPosition(player.getCurrentPosition());
             nextTrack = playlist.getNextTrack(currentTrack);
