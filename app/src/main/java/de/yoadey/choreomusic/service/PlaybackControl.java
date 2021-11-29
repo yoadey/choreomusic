@@ -68,13 +68,12 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * Action for an Intent. Should be called to stop the service.
      */
     public static final String STOP_ACTION = "StopService";
+    public static final long BACKGROUND_THREAD_DELAY = 100;
     /**
      * Time in ms in which the previous button jumps the previous track instead to the beginning
      * of this track
      */
     private static final long PREVIOUS_TRACK_DISTANCE = 5000;
-
-    public static final long BACKGROUND_THREAD_DELAY = 100;
     /**
      * Background thread for handling the loop
      */
@@ -86,17 +85,18 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private boolean threadRunning;
     // Media player and notification stuff
     private ExoPlayer player;
+    /**
+     * Observe the playback time, so the UI can react to it.
+     */
+    public Observable<Long> playbackProgressObservable =
+            Observable.interval(BACKGROUND_THREAD_DELAY, TimeUnit.MILLISECONDS, AndroidSchedulers.from(Looper.myLooper()))
+                    .map(t -> player != null ? player.getCurrentPosition() : 0)
+                    .distinctUntilChanged();
     private Handler exoHandler;
     private MediaSessionCompat mediaSession;
     private MediaSessionConnector mediaSessionConnector;
     private PlayerNotificationManager playerNotificationManager;
     private boolean initialized;
-
-    /** Observe the playback time, so the UI can react to it.  */
-    public Observable<Long> playbackProgressObservable =
-            Observable.interval(BACKGROUND_THREAD_DELAY, TimeUnit.MILLISECONDS, AndroidSchedulers.from(Looper.myLooper()))
-                    .map(t -> player != null ? player.getCurrentPosition() : 0)
-                    .distinctUntilChanged();
     private Disposable progressStateObserverDisposable;
 
     /**
@@ -188,7 +188,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             return;
         }
         playerNotificationManager = new PlayerNotificationManager.Builder(getApplicationContext(), PLAYBACK_NOTIFICATION_ID, PLAYBACK_CHANNEL_ID)
-                .setChannelNameResourceId( R.string.playback_channel_name)
+                .setChannelNameResourceId(R.string.playback_channel_name)
                 .setChannelDescriptionResourceId(R.string.playback_channel_name)
                 .setMediaDescriptionAdapter(new PlayerNotificationManager.MediaDescriptionAdapter() {
                     @NotNull
@@ -239,24 +239,23 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     @Override
     public void onDestroy() {
-        synchronized(this) {
-            if (mediaSession != null) {
-                mediaSession.release();
-                mediaSessionConnector.setPlayer(null);
-            }
-            if (playerNotificationManager != null) {
-                playerNotificationManager.setPlayer(null);
-            }
-            if (player != null) {
-                player.release();
-                player = null;
-            }
-            if (progressStateObserverDisposable != null) {
-                progressStateObserverDisposable.dispose();
-            }
-
-            super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+        if (mediaSession != null) {
+            mediaSession.release();
+            mediaSessionConnector.setPlayer(null);
         }
+        if (playerNotificationManager != null) {
+            playerNotificationManager.setPlayer(null);
+        }
+        if (player != null) {
+            player.release();
+            player = null;
+        }
+        if (progressStateObserverDisposable != null) {
+            progressStateObserverDisposable.dispose();
+        }
+
+        super.onDestroy();
     }
 
     @Override
@@ -478,20 +477,25 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
         handler.postDelayed(new Runnable() {
             public void run() {
-                synchronized(this) {
-                    if (player != null && player.isPlaying()) {
-                        checkLoop();
-                        checkTrack();
+                try {
+                    checkLoop();
+                    checkTrack();
 
+                    // Restart handler
+                    if (player.isPlaying()) {
                         // If the loop cycle should end before normal delay, then update it earlier
                         long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
                         delay = Math.max(0, delay);
-                        // Restart handler
                         handler.postDelayed(this, delay);
                     } else {
                         synchronized (threadRunningLock) {
                             threadRunning = false;
                         }
+                    }
+                } catch (NullPointerException e) {
+                    // Only needs to be handled, if the instance is not already destroyed.
+                    if (player != null) {
+                        throw e;
                     }
                 }
             }
@@ -502,7 +506,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * Check, whether a loop is active and if yes, keeps the song in the area of this loop.
      */
     private void checkLoop() {
-        if(player == null) {
+        if (player == null) {
             // This should not occur, and if it does, only if the service is already disposed, but
             // handle nevertheless
             return;
@@ -521,7 +525,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      * to another one.
      */
     private void checkTrack() {
-        if(player == null) {
+        if (player == null) {
             // This should not occur, and if it does, only if the service is already disposed, but
             // handle nevertheless
             return;
