@@ -25,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
@@ -41,6 +42,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -248,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
 
         if (!songs.contains(song)) {
             songs.add(song);
-            songs.sort((s1, s2) -> s1.getTitle().compareTo(s2.getTitle()));
+            songs.sort(Comparator.comparing(Song::getTitle));
         }
 
         // Open file
@@ -569,7 +571,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     private void sendCommandToService(String action) {
         Intent stopIntent = new Intent(getApplicationContext(), PlaybackControl.class);
         stopIntent.setAction(action);
-        startService(stopIntent);
+        ContextCompat.startForegroundService(this, stopIntent);
     }
 
     @Override

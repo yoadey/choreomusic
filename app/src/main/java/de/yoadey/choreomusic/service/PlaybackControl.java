@@ -1,5 +1,6 @@
 package de.yoadey.choreomusic.service;
 
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import android.os.Looper;
 import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.exoplayer2.ExoPlayer;
@@ -153,7 +155,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         leadInTime = sharedPreferences.getLong(Constants.SP_KEY_LEAD_IN_TIME, 0);
         leadOutTime = sharedPreferences.getLong(Constants.SP_KEY_LEAD_OUT_TIME, 0);
 
-        player = new SimpleExoPlayer.Builder(this).build();
+        player = new ExoPlayer.Builder(this).build();
         player.prepare();
         exoHandler = new Handler(player.getApplicationLooper());
         player.setRepeatMode(Player.REPEAT_MODE_ONE);
@@ -188,6 +190,13 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             return;
         }
         playerNotificationManager = new PlayerNotificationManager.Builder(getApplicationContext(), PLAYBACK_NOTIFICATION_ID, PLAYBACK_CHANNEL_ID)
+                .setNotificationListener(new PlayerNotificationManager.NotificationListener() {
+                    @Override
+                    public void onNotificationPosted(int notificationId, Notification notification, boolean ongoing) {
+                        // Must be started as a ForegroundService, since it plays music and should not be killed
+                        startForeground(notificationId, notification);
+                    }
+                })
                 .setChannelNameResourceId(R.string.playback_channel_name)
                 .setChannelDescriptionResourceId(R.string.playback_channel_name)
                 .setMediaDescriptionAdapter(new PlayerNotificationManager.MediaDescriptionAdapter() {
@@ -217,7 +226,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     @Nullable
                     @Override
                     public Bitmap getCurrentLargeIcon(@NotNull Player player, @NotNull PlayerNotificationManager.BitmapCallback callback) {
-                        return null;//((BitmapDrawable) getApplicationContext().getResources().getDrawable(R.drawable.ic_stat_name, null)).getBitmap();
+                        return null;
                     }
                 })
                 .build();
