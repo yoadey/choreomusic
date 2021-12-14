@@ -1,7 +1,5 @@
-package de.yoadey.choreomusic.utils;
+package de.yoadey.choreomusic.utils.metadata;
 
-import android.content.ContentResolver;
-import android.content.Context;
 import android.util.Log;
 
 import com.mpatric.mp3agic.EncodedText;
@@ -17,6 +15,7 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,18 +27,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 import de.yoadey.choreomusic.model.Track;
+import de.yoadey.choreomusic.utils.MetadataHandler;
 
-/**
- * Helper class to read, write and save the tracks to the mp3 file, so it can be exported.
- */
-public class Id3TagsHandler implements AutoCloseable {
-
+public class Mp3MetadataHandler implements MetadataHandler {
     private static final String TITLE_ID = "TIT2";
 
     private Mp3File mp3File;
     private File file;
 
-    public Id3TagsHandler( File file) {
+    public Mp3MetadataHandler(File file) {
         this.file = file;
         openFile(file);
     }
@@ -53,11 +49,6 @@ public class Id3TagsHandler implements AutoCloseable {
         }
     }
 
-    /**
-     * Retrieve the title of the file, either from ID3v2, ID3v1 or from filename, in this order.
-     *
-     * @return the title of the file.
-     */
     public String getTitle() {
         assert mp3File != null;
         Optional<Mp3File> mp3FileOpt = Optional.of(this.mp3File);
@@ -72,6 +63,11 @@ public class Id3TagsHandler implements AutoCloseable {
 
     public long getLength() {
         return mp3File.getLengthInMilliseconds();
+    }
+
+    @Override
+    public boolean supportsChapters() {
+        return true;
     }
 
     public List<Track> readChapters() {
@@ -120,8 +116,13 @@ public class Id3TagsHandler implements AutoCloseable {
         file = tmpFile;
     }
 
-    public InputStream getInputStream() throws FileNotFoundException {
-        return new FileInputStream(file);
+    public InputStream getInputStream() {
+        try {
+            return new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            Log.w("MetadataHandler", "Exception during opening file: " + e.getMessage());
+            return new ByteArrayInputStream(new byte[0]);
+        }
     }
 
     @Override

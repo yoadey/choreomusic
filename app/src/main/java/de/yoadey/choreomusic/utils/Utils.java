@@ -48,6 +48,17 @@ public class Utils {
         return result;
     }
 
+    public static boolean checkUriExists(ContentResolver cr, Uri uri) {
+        // Don't know any better method to make sure, the uri exists...
+        try {
+            try (InputStream in = cr.openInputStream(uri)) {
+                return true;
+            }
+            // We need an outer try block, to even catch an exception if the open fails
+        } catch (Throwable e) {
+            return false;
+        }
+    }
 
     public static int getColor(Context context, int style, int attr) {
         @ColorInt int resultColor;

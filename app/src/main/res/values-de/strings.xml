@@ -43,7 +43,24 @@
     <string name="track_exists_title">Track existiert schon</string>
     <string name="pref_leadin_track_switch_title">Vorbereitungszeit beim Trackwechsel</string>
     <string name="pref_leadin_track_switch_summary">Die Vorbereitungszeit wird auch abgespielt, wenn mittels der Buttons zwischen den Tracks gewechselt wird</string>
-    <string name="waveview_calculating">Berechne...</string>
+    <string name="waveview_calculating">Berechne…</string>
     <string name="pref_detailed_waveform_switch_title">Suchleiste detailiert</string>
     <string name="pref_detailed_waveform_switch_summary">Die Lautstärke in der Suchleiste wird so detailiert angezeigt wie möglich</string>
+    <string name="main_area_description">Track selection</string>
+    <string name="speed_slider_description">Track speed</string>
+    <string name="loop_description">Loop</string>
+    <string name="playpause_description">Play</string>
+    <string name="save_not_supported_title">Speichern nicht unterstützt</string>
+    <string name="save_not_supported_description">Speichern mit Kapiteln nicht unterstützt</string>
+    <string name="add_track_description">Track hinzufügen</string>
+    <string name="speed_description">Geschwindigkeit</string>
+    <string name="previous_description">Vorheriger Track</string>
+    <string name="stop_description">Stop</string>
+    <string name="next_description">Nächster Track</string>
+    <string name="prepostPrePlus_description">Erhöhe Vorbereitungszeit</string>
+    <string name="prepostPreMinus_description">Verringere Vorbereitungszeit</string>
+    <string name="prepostPostMinus_description">Verringere Nachlaufzeit</string>
+    <string name="prepostPostPlus_description">Erhöhe Nachlaufzeit</string>
+    <string name="prepostPreTime_description">Vorlaufzeit</string>
+    <string name="prepostPostTime_description">Nachlaufzeit</string>
 </resources>

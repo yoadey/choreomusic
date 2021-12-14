@@ -49,7 +49,6 @@ public class AboutActivity extends AppCompatActivity {
 
         View aboutView = new AboutPage(this)
                 .isRTL(false)
-                .enableDarkMode(false)
                 .setImage(R.drawable.ic_launcher_foreground)
                 .setDescription(getString(R.string.app_description))
                 .setDescription(getString(R.string.about_description))

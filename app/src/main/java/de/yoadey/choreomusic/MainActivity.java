@@ -1,7 +1,6 @@
 package de.yoadey.choreomusic;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -12,9 +11,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -24,11 +21,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.core.os.HandlerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -44,10 +42,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
@@ -62,28 +62,11 @@ import de.yoadey.choreomusic.ui.tracks.SongsTracksAdapter;
 import de.yoadey.choreomusic.utils.AmplitudesHelper;
 import de.yoadey.choreomusic.utils.Constants;
 import de.yoadey.choreomusic.utils.DatabaseHelper;
-import de.yoadey.choreomusic.utils.Id3TagsHandler;
+import de.yoadey.choreomusic.utils.MetadataHandler;
 import de.yoadey.choreomusic.utils.Utils;
 import lombok.Getter;
 
 public class MainActivity extends AppCompatActivity implements PlaybackControl.PlaybackListener, ServiceConnection {
-
-    /**
-     * Number of milliseconds to delay, before the background thread is called again to update the UI components and the loop
-     */
-    public static final int BACKGROUND_THREAD_DELAY = 100;
-    /**
-     * Code to identify the open file intent in the callback
-     */
-    private static final int OPEN_FILE_CODE = 1;
-    /**
-     * Code to identify the save file intent in the callback
-     */
-    private static final int SAVE_FILE_CODE = 2;
-
-    private final Object threadRunningLock = new Object();
-    private final Handler handler = HandlerCompat.createAsync(Looper.myLooper());
-    private boolean threadRunning;
 
     private DatabaseHelper databaseHelper;
     private SongsTracksAdapter songsTracksAdapter;
@@ -95,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     private Playlist playlist;
     // A file which should be opened once the PlaybackControl service is connected
     private Uri fileToOpen;
+
+    private ActivityResultLauncher<String[]> openFileLauncher;
+    private ActivityResultLauncher<String> saveFileLauncher;
 
     public DatabaseHelper getDatabaseHelper() {
         return databaseHelper;
@@ -144,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         View speed = findViewById(R.id.speed);
         speed.setOnClickListener(v -> openSpeedDialog());
 
-        View bookmark = findViewById(R.id.addMark);
+        View bookmark = findViewById(R.id.add_track);
         bookmark.setOnClickListener(v -> addTrack());
 
         View next = findViewById(R.id.next);
@@ -160,7 +146,14 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                 (tab, pos) -> tab.setText(pos == 0 ? R.string.songs : R.string.tracks)
         ).attach();
 
+        registerActityResults();
+
         checkOnboarding();
+    }
+
+    private void registerActityResults() {
+        openFileLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocument(), this::openFile);
+        saveFileLauncher = registerForActivityResult(new ActivityResultContracts.CreateDocument(), this::saveFile);
     }
 
     /**
@@ -189,31 +182,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
             songsTracksAdapter.onDestroy();
         }
         sendCommandToService(PlaybackControl.STOP_ACTION);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            ContentResolver contentResolver = getContentResolver();
-            assert data != null;
-            Uri file = data.getData();
-            if (requestCode == OPEN_FILE_CODE) {
-                contentResolver.takePersistableUriPermission(file, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                openFile(file);
-            } else if (requestCode == SAVE_FILE_CODE) {
-                File localFile = playbackControl.getLocalFile();
-                try (Id3TagsHandler id3Handler = new Id3TagsHandler(localFile)) {
-                    id3Handler.saveChapters(playlist.getTracks());
-                    try (InputStream in = id3Handler.getInputStream();
-                         OutputStream out = contentResolver.openOutputStream(file)) {
-                        Utils.copyStream(in, out);
-                    }
-                } catch (IOException e) {
-                    Log.w(MainActivity.class.getName(), "Error during saving file: ", e);
-                }
-            }
-        }
     }
 
     @Override
@@ -266,6 +234,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
             return;
         }
 
+        ContentResolver contentResolver = getContentResolver();
+        contentResolver.takePersistableUriPermission(file, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         // Check whether file still exists
         boolean stillExists = getContentResolver().getPersistedUriPermissions()
                 .stream()
@@ -280,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
 
         if (!songs.contains(song)) {
             songs.add(song);
-            songs.sort((s1, s2) -> s1.getTitle().compareTo(s2.getTitle()));
+            songs.sort(Comparator.comparing(Song::getTitle));
         }
 
         // Open file
@@ -302,10 +272,11 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
             song = new Song();
             song.setUri(file.toString());
             File localFile = playbackControl.getLocalFile(file);
-            try (Id3TagsHandler id3Handler = new Id3TagsHandler(localFile)) {
-                song.setTitle(id3Handler.getTitle());
-                song.setLength(id3Handler.getLength());
-                song.setTracks(id3Handler.readChapters());
+            try (MetadataHandler metadataHandler = MetadataHandler.open(getApplicationContext(), localFile)) {
+                song.setTitle(metadataHandler.getTitle());
+                song.setLength(metadataHandler.getLength());
+                song.setTracks(metadataHandler.readChapters());
+                song.setFileSupportsTracks(metadataHandler.supportsChapters());
             } finally {
                 if (!localFile.delete()) {
                     Log.w("MainActivity", "Could not delete temporary file");
@@ -336,7 +307,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                 String fileUri = sharedPreferences.getString(Constants.SP_KEY_FILE, null);
                 if (fileUri != null) {
                     Uri uri = Uri.parse(fileUri);
-                    openFile(uri);
+                    if(Utils.checkUriExists(getContentResolver(), uri)) {
+                        openFile(uri);
+                    }
                 }
             }
         });
@@ -377,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     private void configureWaveform(WaveformSeekBar waveformSeekBar) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        if(preferences.getBoolean(Constants.SP_KEY_DETAILED_WAVEFORM, true)) {
+        if (preferences.getBoolean(Constants.SP_KEY_DETAILED_WAVEFORM, false)) {
             waveformSeekBar.setWaveGap(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 0, displayMetrics));
             waveformSeekBar.setWaveWidth(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 1, displayMetrics));
             waveformSeekBar.setWaveCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, 0, displayMetrics));
@@ -421,15 +394,11 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                     .filter(track -> Math.abs(track.getPosition() - bookmarkPosition) < 100)
                     .findAny().orElse(null);
             if (existingTrack != null) {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.track_exists_title)
-                        .setMessage(getString(R.string.track_exists,
+
+                showError(getString(R.string.track_exists_title),
+                        getString(R.string.track_exists,
                                 existingTrack.getPosition() / 60000, existingTrack.getPosition() / 1000 % 60,
-                                existingTrack.getLabel()))
-                        // A null listener allows the button to dismiss the dialog and take no further action.
-                        .setNegativeButton(android.R.string.ok, null)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
+                                existingTrack.getLabel()));
             } else {
                 // Find the highest track number and set the title of the new track to the next value
                 int nextTrack = playlist.getTracks().stream()
@@ -453,12 +422,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         dialogFragment.show(getSupportFragmentManager(), "OpenPopup");
     }
 
-    private void onSliderChanged(WaveformSeekBar seekbar, Integer progress, Boolean fromUser) {
+    private void onSliderChanged(WaveformSeekBar seekbar, Float progress, Boolean fromUser) {
         ifPlaybackControlInitialized(() -> {
             if (fromUser) {
                 TextView time = findViewById(R.id.time);
-                time.setText(String.format(Locale.GERMAN, "%02d:%02d", progress / 60000, progress / 1000 % 60));
-                playbackControl.seekTo(progress);
+                time.setText(String.format(Locale.GERMAN, "%02.0f:%02.0f", progress / 60000, progress / 1000 % 60));
+                playbackControl.seekTo(Math.round(progress));
             }
         });
     }
@@ -477,12 +446,24 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean supportsTracks = Optional.ofNullable(playbackControl)
+                .map(PlaybackControl::getCurrentSong)
+                .map(Song::getFileSupportsTracks)
+                .orElse(false);
+        // Those options are only useful, if the file type supports tracks
+        menu.findItem(R.id.action_share).setEnabled(supportsTracks);
+        menu.findItem(R.id.action_save).setEnabled(supportsTracks);
+        menu.findItem(R.id.action_reload).setEnabled(supportsTracks);
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         if (item.getItemId() == R.id.action_open) {
-            Intent openFile = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            openFile.setType("audio/mpeg");
-            startActivityForResult(openFile, OPEN_FILE_CODE);
+            openFileLauncher.launch(new String[]{"*/*"});
             return true;
         } else if (item.getItemId() == R.id.action_share) {
             saveAndShareFile();
@@ -491,12 +472,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
             saveFile();
             return true;
         } else if (item.getItemId() == R.id.action_reload) {
-            ifPlaybackControlInitialized(() -> {
-                try (Id3TagsHandler id3Handler = new Id3TagsHandler(playbackControl.getLocalFile())) {
-                    List<Track> tracks = id3Handler.readChapters();
-                    playlist.reset(tracks);
-                }
-            });
+            reloadFile();
             return true;
         } else if (item.getItemId() == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
@@ -512,10 +488,19 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         }
     }
 
+    private void reloadFile() {
+        ifPlaybackControlInitialized(() -> {
+            try (MetadataHandler mdHandler = MetadataHandler.open(getApplicationContext(), playbackControl.getLocalFile())) {
+                List<Track> tracks = mdHandler.readChapters();
+                playlist.reset(tracks, playbackControl.getCurrentSong().getLength());
+            }
+        });
+    }
+
     private void saveAndShareFile() {
         ifPlaybackControlInitialized(() -> {
-            try (Id3TagsHandler id3Handler = new Id3TagsHandler(playbackControl.getLocalFile())) {
-                id3Handler.saveChapters(playlist.getTracks());
+            try (MetadataHandler mdHandler = MetadataHandler.open(getApplicationContext(), playbackControl.getLocalFile())) {
+                mdHandler.saveChapters(playlist.getTracks());
 
                 Uri songUri = FileProvider.getUriForFile(this, "de.yoadey.choreomusic.provider",
                         playbackControl.getLocalFile());
@@ -531,43 +516,40 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         });
     }
 
+    /**
+     * Initiates the save activity to select the target location to save the file
+     */
     private void saveFile() {
         ifPlaybackControlInitialized(() -> {
+            if (!playbackControl.getCurrentSong().getFileSupportsTracks()) {
+                // User should not be able to reach this point, but better save than sorry
+                showError(getString(R.string.save_not_supported_title),
+                        getString(R.string.save_not_supported_description));
+                return;
+            }
+
             String filename = Utils.getFileName(getContentResolver(), playbackControl.getCurrentSong().getParsedUri());
-
-            Intent intentSaveFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-            intentSaveFile.setType("audio/mpeg");
-            intentSaveFile.putExtra(Intent.EXTRA_TITLE, filename);
-
-            startActivityForResult(intentSaveFile, SAVE_FILE_CODE);
+            saveFileLauncher.launch(filename);
         });
     }
 
     /**
-     * Background thread to update the slider and timer
+     * Saves the file to the target location
+     *
+     * @param file the file to which the output should be written.
      */
-    private void startLoopingThread() {
-        synchronized (threadRunningLock) {
-            if (threadRunning) {
-                return;
+    private void saveFile(Uri file) {
+        ContentResolver contentResolver = getContentResolver();
+        File localFile = playbackControl.getLocalFile();
+        try (MetadataHandler mdHandler = MetadataHandler.open(getApplicationContext(), localFile)) {
+            mdHandler.saveChapters(playlist.getTracks());
+            try (InputStream in = mdHandler.getInputStream();
+                 OutputStream out = contentResolver.openOutputStream(file)) {
+                Utils.copyStream(in, out);
             }
-
-            threadRunning = true;
+        } catch (IOException e) {
+            Log.w(MainActivity.class.getName(), "Error during saving file: ", e);
         }
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                updateSlider();
-
-                // Restart handler
-                synchronized (threadRunningLock) {
-                    if (playbackControl.isPlaying()) {
-                        handler.postDelayed(this, BACKGROUND_THREAD_DELAY);
-                    } else {
-                        threadRunning = false;
-                    }
-                }
-            }
-        }, BACKGROUND_THREAD_DELAY);
     }
 
     @SuppressLint("DefaultLocale")
@@ -589,7 +571,22 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     private void sendCommandToService(String action) {
         Intent stopIntent = new Intent(getApplicationContext(), PlaybackControl.class);
         stopIntent.setAction(action);
-        startService(stopIntent);
+        ContextCompat.startForegroundService(this, stopIntent);
+    }
+
+    @Override
+    public void onSpeedChanged(float newSpeed) {
+        MaterialButton button = findViewById(R.id.speed);
+        TextView textView = findViewById(R.id.speedText);
+        runOnUiThread(() -> {
+            if (newSpeed != 1F) {
+                button.setIconTintResource(R.color.secondary);
+                textView.setText(String.format(Locale.ENGLISH, "%.2f", newSpeed));
+            } else {
+                button.setIconTintResource(R.color.primary);
+                textView.setText("");
+            }
+        });
     }
 
     @Override
@@ -624,13 +621,35 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     }
 
     @Override
+    public void onProgressChanged(int progress) {
+        updateSlider();
+    }
+
+    @Override
     public void onIsPlayingChanged(boolean isPlaying) {
         MaterialButton play = findViewById(R.id.playpause);
-        if (isPlaying) {
-            play.setIconResource(R.drawable.baseline_pause_24);
-            startLoopingThread();
-        } else {
-            play.setIconResource(R.drawable.baseline_play_arrow_24);
-        }
+        runOnUiThread(() -> {
+            if (isPlaying) {
+                play.setIconResource(R.drawable.baseline_pause_24);
+            } else {
+                play.setIconResource(R.drawable.baseline_play_arrow_24);
+            }
+        });
+    }
+
+    /**
+     * Shows in error in case a not applicable action was tried
+     *
+     * @param title       the title of the error
+     * @param description the description of the error
+     */
+    private void showError(String title, String description) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(description)
+                // A null listener allows the button to dismiss the dialog and take no further action.
+                .setNegativeButton(android.R.string.ok, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 }
