@@ -6,6 +6,8 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Environment;
@@ -15,7 +17,7 @@ import android.os.Looper;
 import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.exoplayer2.ExoPlayer;
@@ -23,7 +25,6 @@ import com.google.android.exoplayer2.ForwardingPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 
@@ -226,7 +227,15 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     @Nullable
                     @Override
                     public Bitmap getCurrentLargeIcon(@NotNull Player player, @NotNull PlayerNotificationManager.BitmapCallback callback) {
-                        return null;
+                        Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.mipmap.ic_launcher, getTheme());
+                        if (drawable == null) {
+                            return null;
+                        }
+                        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                        Canvas canvas = new Canvas(bitmap);
+                        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                        drawable.draw(canvas);
+                        return bitmap;
                     }
                 })
                 .build();
@@ -239,6 +248,14 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             @Override
             public void seekToNext() {
                 nextTrack();
+            }
+
+            @Override
+            public boolean isCommandAvailable(int command) {
+                if (command == COMMAND_SEEK_TO_NEXT) {
+                    return nextTrack != null;
+                }
+                return super.isCommandAvailable(command);
             }
         };
         playerNotificationManager.setPlayer(forwardingPlayer);
@@ -571,8 +588,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
         exoHandler.post(() -> {
             player.setMediaItem(mediaItem);
-            // To allow next buttons in notification
-            player.addMediaItem(mediaItem);
             currentSong = song;
             player.prepare();
             initialized = true;

@@ -28,7 +28,7 @@
     <string name="licenses">Licenses</string>
     <string name="speed_title">Speed</string>
     <string name="edittrack_note_end_time">Note: the end time is the beginning of the next track and can only be configured at the next track.</string>
-    <string name="track_exists">There already exists a track at position %1$02d:%2$02d:\n%3$s</string>
+    <string name="warn_track_exists_message">There already exists a track at position %1$02d:%2$02d:\n%3$s</string>
     <string name="introduction">Introduction</string>
     <string name="intro_preptime">If you are training to the song, you probably need some time between each iteration to go back to your starting position. You can add some time before and after the loop to do so. Additionally, the lead-in time also applies if you start a track.</string>
     <string name="intro_loop">Create a loop by selecting the start (A) and the end track (B). As long as there are A and B selected, the loop is active. A and B may be selected on the same track.</string>
@@ -39,14 +39,14 @@
     <string name="intro_edit">By long pressing on a track you can edit the name and starting position of a track or delete it.</string>
     <string name="intro_edit_title">Edit track</string>
     <string name="action_onboarding">Introduction</string>
-    <string name="track_exists_title">Track already exists</string>
+    <string name="warn_track_exists_title">Track already exists</string>
     <string name="pref_leadin_track_switch_title">Preparation time for track switch</string>
     <string name="pref_leadin_track_switch_summary">The lead-in time will also be used when switching to another track through direct select or next/previous buttons</string>
     <string name="waveview_calculating">Calculating…</string>
     <string name="pref_detailed_waveform_switch_title">Seekbar detailed</string>
     <string name="pref_detailed_waveform_switch_summary">The seekbar volume waves should be presented with as much details as possible</string>
-    <string name="save_not_supported_title">Save not supported</string>
-    <string name="save_not_supported_description">Save with chapters is not supported for this file type!</string>
+    <string name="warn_save_not_supported_title">Save not supported</string>
+    <string name="warn_save_not_supported_message">Save with chapters is not supported for this file type!</string>
     <string name="main_area_description">Track selection</string>
     <string name="speed_slider_description">Track speed</string>
     <string name="loop_description">Loop</string>
@@ -62,4 +62,6 @@
     <string name="prepostPostPlus_description">Increase lead out time</string>
     <string name="prepostPreTime_description">Lead in time</string>
     <string name="prepostPostTime_description">Lead out time</string>
+    <string name="warn_track_deleted_title">Track not opened</string>
+    <string name="warn_track_deleted_message">Track {0} was deleted/could not be opened and is deleted from the list.</string>
 </resources>

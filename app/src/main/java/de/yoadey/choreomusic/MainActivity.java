@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -234,13 +235,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
             return;
         }
 
-        ContentResolver contentResolver = getContentResolver();
-        contentResolver.takePersistableUriPermission(file, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        // Check whether file still exists
-        boolean stillExists = getContentResolver().getPersistedUriPermissions()
-                .stream()
-                .anyMatch(element -> Objects.equals(element.getUri(), file));
+        boolean stillExists = takePermissions(file);
         if (!stillExists) {
+            String filename = file.getLastPathSegment();
+            filename = filename.replaceFirst("^.+[:/]", "");
+            showError(getString(R.string.warn_track_deleted_title),
+                    MessageFormat.format(getString(R.string.warn_track_deleted_message), filename));
             databaseHelper.deleteSongByUri(file);
             return;
         }
@@ -256,6 +256,33 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         // Open file
         if (playbackControl != null) {
             playbackControl.openSong(song);
+        }
+    }
+
+    /**
+     * Checks whether the permissions can be taken for the file. If not or the file does no longer
+     * exist in the list of files, it is deleted from the list of open songs
+     *
+     * @param file the file to open
+     * @return true, if permissions could be taken or exist, false otherwise.
+     */
+    private boolean takePermissions(Uri file) {
+        try {
+            boolean alreadyPermissions = getContentResolver().getPersistedUriPermissions()
+                    .stream()
+                    .anyMatch(element -> Objects.equals(element.getUri(), file));
+            boolean stillExists = true;
+            if (!alreadyPermissions) {
+                getContentResolver().takePersistableUriPermission(file, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                // Check whether file permissions could really be taken
+                stillExists = getContentResolver().getPersistedUriPermissions()
+                        .stream()
+                        .anyMatch(element -> Objects.equals(element.getUri(), file));
+            }
+            stillExists &= Utils.checkUriExists(getContentResolver(), file);
+            return stillExists;
+        } catch (SecurityException e) {
+            return false;
         }
     }
 
@@ -307,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                 String fileUri = sharedPreferences.getString(Constants.SP_KEY_FILE, null);
                 if (fileUri != null) {
                     Uri uri = Uri.parse(fileUri);
-                    if(Utils.checkUriExists(getContentResolver(), uri)) {
+                    if (Utils.checkUriExists(getContentResolver(), uri)) {
                         openFile(uri);
                     }
                 }
@@ -395,8 +422,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                     .findAny().orElse(null);
             if (existingTrack != null) {
 
-                showError(getString(R.string.track_exists_title),
-                        getString(R.string.track_exists,
+                showError(getString(R.string.warn_track_exists_title),
+                        getString(R.string.warn_track_exists_message,
                                 existingTrack.getPosition() / 60000, existingTrack.getPosition() / 1000 % 60,
                                 existingTrack.getLabel()));
             } else {
@@ -523,8 +550,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         ifPlaybackControlInitialized(() -> {
             if (!playbackControl.getCurrentSong().getFileSupportsTracks()) {
                 // User should not be able to reach this point, but better save than sorry
-                showError(getString(R.string.save_not_supported_title),
-                        getString(R.string.save_not_supported_description));
+                showError(getString(R.string.warn_save_not_supported_title),
+                        getString(R.string.warn_save_not_supported_message));
                 return;
             }
 
@@ -644,12 +671,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
      * @param description the description of the error
      */
     private void showError(String title, String description) {
-        new AlertDialog.Builder(this)
+        runOnUiThread(() -> new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(description)
                 // A null listener allows the button to dismiss the dialog and take no further action.
                 .setNegativeButton(android.R.string.ok, null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+                .show());
     }
 }
