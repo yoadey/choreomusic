@@ -15,12 +15,16 @@ android {
         applicationId "de.yoadey.choreomusic"
         minSdkVersion 26
         targetSdkVersion 31
-        versionCode 10
-        versionName "0.10"
+        versionCode 11
+        versionName "0.11"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        //noinspection DataBindingWithoutKapt
+        dataBinding true
+    }
     buildTypes {
         release {
             minifyEnabled false

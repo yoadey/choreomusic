@@ -27,6 +27,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.databinding.ObservableArrayList;
+import androidx.databinding.ObservableList;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -41,7 +43,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     @Getter
     private PlaybackControl playbackControl;
 
-    private List<Song> songs;
+    private ObservableList<Song> songs;
     private Playlist playlist;
     // A file which should be opened once the PlaybackControl service is connected
     private Uri fileToOpen;
@@ -103,8 +105,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         databaseHelper = new DatabaseHelper(getApplicationContext());
-        songs = new ArrayList<>();
-        songs.addAll(databaseHelper.getAllSongs());
+        initializeSongs();
         sendCommandToService(PlaybackControl.START_ACTION);
         bindService(new Intent(this, PlaybackControl.class), this, Context.BIND_AUTO_CREATE);
 
@@ -147,21 +148,41 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
                 (tab, pos) -> tab.setText(pos == 0 ? R.string.songs : R.string.tracks)
         ).attach();
 
-        registerActityResults();
+        registerActivityResults();
 
-        checkOnboarding();
+        checkOnBoarding();
     }
 
-    private void registerActityResults() {
+    private void initializeSongs() {
+        songs = new ObservableArrayList<>();
+        songs.addAll(databaseHelper.getAllSongs());
+        new Thread(() -> {
+            List<Song> deletedSongs = songs.stream()
+                    .filter(song -> !Utils.checkUriExists(getContentResolver(), song.getParsedUri()))
+                    .peek(databaseHelper::deleteSong)
+                    .collect(Collectors.toList());
+            if (deletedSongs.size() > 0) {
+                String deletedSongTitles = deletedSongs.stream()
+                        // songs.removeAll does not work, as ObservableList does not notify then
+                        .peek(songs::remove)
+                        .map(song -> song.getParsedUri().getLastPathSegment().replaceFirst("^.+[:/]", ""))
+                        .collect(Collectors.joining(", "));
+                showError(getString(R.string.warn_track_deleted_title),
+                        MessageFormat.format(getString(R.string.warn_track_deleted_message), deletedSongTitles));
+            }
+        }).start();
+    }
+
+    private void registerActivityResults() {
         openFileLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocument(), this::openFile);
         saveFileLauncher = registerForActivityResult(new ActivityResultContracts.CreateDocument(), this::saveFile);
     }
 
     /**
-     * Checks whether this is the first time the user starts the app and if yes, shows an onboarding
+     * Checks whether this is the first time the user starts the app and if yes, shows an onBoarding
      * screen.
      */
-    private void checkOnboarding() {
+    private void checkOnBoarding() {
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this);
         if (!sharedPreferences.getBoolean(
@@ -245,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
             return;
         }
 
-        // Save/update/delete fileinfos
+        // Save/update/delete file info
         Song song = getOrCreateSong(file);
 
         if (!songs.contains(song)) {

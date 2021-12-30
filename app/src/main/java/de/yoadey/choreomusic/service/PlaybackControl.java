@@ -387,13 +387,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void setLoopStart(Track loopStart) {
         this.loopStart = loopStart;
-        exoHandler.post(() -> {
-            if (isLoopActive()) {
-                player.setRepeatMode(Player.REPEAT_MODE_ONE);
-            } else {
-                player.setRepeatMode(Player.REPEAT_MODE_OFF);
-            }
-        });
         fireEvent(l -> l.onLoopChanged(this.loopStart, this.loopEnd));
     }
 
@@ -406,13 +399,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void setLoopEnd(Track loopEnd) {
         this.loopEnd = loopEnd;
-        exoHandler.post(() -> {
-            if (isLoopActive()) {
-                player.setRepeatMode(Player.REPEAT_MODE_ONE);
-            } else {
-                player.setRepeatMode(Player.REPEAT_MODE_OFF);
-            }
-        });
         fireEvent(l -> l.onLoopChanged(this.loopStart, this.loopEnd));
     }
 
@@ -582,7 +568,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             stop();
         }
 
-        // In case the song got deleted on disk, delete it from our database
         Uri parsedUri = song.getParsedUri();
         MediaItem mediaItem = MediaItem.fromUri(parsedUri);
 
