@@ -159,7 +159,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         player = new ExoPlayer.Builder(this).build();
         player.prepare();
         exoHandler = new Handler(player.getApplicationLooper());
-        player.setRepeatMode(Player.REPEAT_MODE_ONE);
+        player.setRepeatMode(Player.REPEAT_MODE_OFF);
 
         player.addListener(new Player.Listener() {
             @Override
