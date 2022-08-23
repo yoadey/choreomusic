@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.IBinder;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -84,12 +87,6 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
                 .findAny()
                 .ifPresent(t -> trackToLayout.remove(track));
         trackToLayout.put(track, layout);
-        if (playbackControl.getCurrentTrack() == track) {
-            layout.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
-            currentTrack = layout;
-        } else {
-            layout.setBackgroundColor(Color.TRANSPARENT);
-        }
         initializeTexts(i, track, nextTrack, layout);
         initializeLoopButtons(track, nextTrack, layout);
 
@@ -100,6 +97,16 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
         // Set Max after min again, as it might not be changed previously if it was below the previous min
         progressBar.setMax((int) nextTrack.getPosition());
         progressBar.setProgress(playbackControl.getCurrentPosition() > progressBar.getMax() ? 0 : (int) playbackControl.getCurrentPosition());
+
+        if (playbackControl.getCurrentTrack() == track) {
+            int color = getBrighterColor(track.getColor());
+            layout.setBackgroundColor(color);
+            progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary)));
+            currentTrack = layout;
+        } else {
+            layout.setBackgroundColor(track.getColor());
+            progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(0));
+        }
     }
 
     private void initializeListeners(int i, Track track, ConstraintLayout layout) {
@@ -269,17 +276,35 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     public void onTrackChanged(Track newTrack) {
         ((MainActivity) context).runOnUiThread(() -> {
             if (this.currentTrack != null) {
-                this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackUnselectedColor));
+                trackToLayout.entrySet().stream().filter(e -> e.getValue() == currentTrack).findAny().ifPresent(e -> {
+                    this.currentTrack.setBackgroundColor(e.getKey().getColor());
+                    ProgressBar progressBar = currentTrack.findViewById(R.id.trackProgressBar);
+                    progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                });
             }
             this.currentTrack = trackToLayout.get(newTrack);
             if (currentTrack != null) {
-                this.currentTrack.setBackgroundColor(getColor(R.attr.loopTrackSelectedColor));
+                int color = getBrighterColor(newTrack.getColor());
+                this.currentTrack.setBackgroundColor(color);
+                ProgressBar progressBar = currentTrack.findViewById(R.id.trackProgressBar);
+                progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary)));
             }
             int position = playlist.getTracks().indexOf(newTrack);
             position = Math.max(0, Math.min(getItemCount() - 1, position));
             recyclerView.scrollToPosition(position);
             updateSliders();
         });
+    }
+
+    private int getBrighterColor(int color) {
+        int[] colors = context.getResources().getIntArray(R.array.trackColors);
+        for(int i = 0; i < colors.length; i++) {
+            if(color == colors[i]) {
+                return context.getResources().getIntArray(R.array.trackSelectedColors)[i];
+            }
+        }
+
+        return getColor(R.attr.loopTrackSelectedColor);
     }
 
     @Override

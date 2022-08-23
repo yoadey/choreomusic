@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
@@ -54,6 +55,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Service to handle the player and manage the current state, independent from the UI.
@@ -78,6 +80,10 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      */
     private static final long PREVIOUS_TRACK_DISTANCE = 5000;
     /**
+     * Time in ms in which the music fades into the original volume before the track
+     */
+    private static final long FADE_IN_DURATION = 2000;
+    /**
      * Background thread for handling the loop
      */
     private final Handler handler = new Handler();
@@ -88,13 +94,16 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private boolean threadRunning;
     // Media player and notification stuff
     private ExoPlayer player;
+    private Looper looper = Looper.myLooper();
     /**
      * Observe the playback time, so the UI can react to it.
+     *
+     * In JUnit, the looper will be null and not mocked, so we won't be able to have an observer.
      */
-    public Observable<Long> playbackProgressObservable =
-            Observable.interval(BACKGROUND_THREAD_DELAY, TimeUnit.MILLISECONDS, AndroidSchedulers.from(Looper.myLooper()))
+    public Observable<Long> playbackProgressObservable = looper != null ?
+            Observable.interval(BACKGROUND_THREAD_DELAY, TimeUnit.MILLISECONDS, AndroidSchedulers.from(looper))
                     .map(t -> player != null ? player.getCurrentPosition() : 0)
-                    .distinctUntilChanged();
+                    .distinctUntilChanged() : null;
     private Handler exoHandler;
     private MediaSessionCompat mediaSession;
     private MediaSessionConnector mediaSessionConnector;
@@ -140,6 +149,18 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     @Getter
     private Track nextTrack;
 
+    /**
+     * Volume of the leadin part if the music is played in a loop.
+     */
+    @Getter
+    private float leadInVolume = 1.0f;
+
+    /**
+     * Volume of the leadout part if the music is played in a loop.
+     */
+    @Getter
+    private float leadOutVolume = 1.0f;
+
     private File localFile;
 
     public PlaybackControl() {
@@ -155,6 +176,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
         leadInTime = sharedPreferences.getLong(Constants.SP_KEY_LEAD_IN_TIME, 0);
         leadOutTime = sharedPreferences.getLong(Constants.SP_KEY_LEAD_OUT_TIME, 0);
+        leadInVolume = sharedPreferences.getFloat(Constants.SP_KEY_LEAD_IN_VOLUME, 1.0f);
+        leadOutVolume = sharedPreferences.getFloat(Constants.SP_KEY_LEAD_OUT_VOLUME, 1.0f);
 
         player = new ExoPlayer.Builder(this).build();
         player.prepare();
@@ -413,18 +436,45 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         this.leadInTime = leadInTime;
 
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putLong(Constants.SP_KEY_LEAD_IN_TIME, leadInTime);
-        editor.apply();
+        if(sharedPreferences != null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong(Constants.SP_KEY_LEAD_IN_TIME, leadInTime);
+            editor.apply();
+        }
     }
 
     public void setLeadOutTime(long leadOutTime) {
         this.leadOutTime = leadOutTime;
 
+
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putLong(Constants.SP_KEY_LEAD_OUT_TIME, leadOutTime);
-        editor.apply();
+        if(sharedPreferences != null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong(Constants.SP_KEY_LEAD_OUT_TIME, leadOutTime);
+            editor.apply();
+        }
+    }
+
+    public void setLeadInVolume(float leadInOutVolume) {
+        this.leadInVolume = leadInOutVolume;
+
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
+        if(sharedPreferences != null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putFloat(Constants.SP_KEY_LEAD_IN_VOLUME, leadInOutVolume);
+            editor.apply();
+        }
+    }
+
+    public void setLeadOutVolume(float leadInOutVolume) {
+        this.leadOutVolume = leadInOutVolume;
+
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
+        if(sharedPreferences != null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putFloat(Constants.SP_KEY_LEAD_OUT_VOLUME, leadInOutVolume);
+            editor.apply();
+        }
     }
 
     public boolean isPlaying() {
@@ -492,6 +542,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 try {
                     checkLoop();
                     checkTrack();
+                    checkVolume();
 
                     // Restart handler
                     if (player.isPlaying()) {
@@ -547,6 +598,45 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             currentTrack = playlist.getTrackForPosition(player.getCurrentPosition());
             nextTrack = playlist.getNextTrack(currentTrack);
             fireEvent(l -> l.onTrackChanged(currentTrack));
+        }
+    }
+
+    public void checkVolume() {
+        if(player == null) {
+            return;
+        }
+        if(isLoopActive()) {
+            long currentPosition = player.getCurrentPosition();
+            long position = loopStart.getPosition() - currentPosition;
+            position = position > 0 ? position : currentPosition - loopEnd.getPosition();
+            float leadInOutVolume = currentPosition < loopStart.getPosition() ? leadInVolume : leadOutVolume;
+
+            if(position < 0) {
+                // Loop main part
+                player.setVolume(1.0f);
+            } else if(currentPosition > getLoopEndPosition() - FADE_IN_DURATION / 2 ||
+                    currentPosition < getLoopStartPosition() + FADE_IN_DURATION / 2) {
+                position = currentPosition < loopStart.getPosition() ?
+                        currentPosition - getLoopStartPosition() :
+                        currentPosition - getLoopEndPosition();
+                position += FADE_IN_DURATION / 2;
+
+                // Fade between lead in and out
+                float volume = (leadOutVolume - leadInVolume) * (FADE_IN_DURATION - position) / FADE_IN_DURATION + leadInVolume;
+                player.setVolume(volume*volume);
+                Log.i("PlaybackControl", "checkVolume1: " + volume);
+            } else if (position > FADE_IN_DURATION) {
+                // Lead in / out part
+                player.setVolume(leadInOutVolume*leadInOutVolume);
+                Log.i("PlaybackControl", "checkVolume2: " + leadInOutVolume);
+            } else {
+                // Fade part between main
+                float volume = (1.0f - leadInOutVolume) * (FADE_IN_DURATION - position) / FADE_IN_DURATION + leadInOutVolume;
+                player.setVolume(volume*volume);
+                Log.i("PlaybackControl", "checkVolume3: " + volume);
+            }
+        } else {
+            player.setVolume(1.0f);
         }
     }
 

@@ -8,6 +8,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="20dp"
         android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -18,7 +20,6 @@
             android:id="@+id/tableLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="20dp"
             tools:ignore="UselessParent">
 
             <TableRow
@@ -32,9 +33,9 @@
 
                 <EditText
                     android:id="@+id/prepostPreTime"
-                    android:contentDescription="@string/prepostPreTime_description"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
+                    android:contentDescription="@string/prepostPreTime_description"
                     android:digits="0123456789"
                     android:ems="2"
                     android:importantForAutofill="no"
@@ -55,8 +56,8 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/prepostPreMinus"
-                    android:contentDescription="@string/prepostPreMinus_description"
                     style="@style/BorderedButton"
+                    android:contentDescription="@string/prepostPreMinus_description"
                     android:text="-"
                     android:textSize="24sp"
                     tools:ignore="HardcodedText" />
@@ -67,12 +68,45 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/prepostPrePlus"
-                    android:contentDescription="@string/prepostPrePlus_description"
                     style="@style/BorderedButton"
+                    android:contentDescription="@string/prepostPrePlus_description"
                     android:text="+"
                     android:textSize="24sp"
                     tools:ignore="HardcodedText" />
 
+            </TableRow>
+
+            <TableRow>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_span="7">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        app:srcCompat="@drawable/ic_baseline_volume_down_24"
+                        app:tint="?colorPrimary" />
+
+                    <androidx.appcompat.widget.AppCompatSeekBar
+                        android:id="@+id/preVolume"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:min="0"
+                        android:progress="100" />
+
+                    <TextView
+                        android:id="@+id/preVolumeText"
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="100%"
+                        tools:ignore="HardcodedText" />
+
+                </LinearLayout>
             </TableRow>
 
             <TableRow
@@ -86,9 +120,9 @@
 
                 <EditText
                     android:id="@+id/prepostPostTime"
-                    android:contentDescription="@string/prepostPostTime_description"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
+                    android:contentDescription="@string/prepostPostTime_description"
                     android:digits="0123456789"
                     android:ems="2"
                     android:importantForAutofill="no"
@@ -109,8 +143,8 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/prepostPostMinus"
-                    android:contentDescription="@string/prepostPostMinus_description"
                     style="@style/BorderedButton"
+                    android:contentDescription="@string/prepostPostMinus_description"
                     android:text="-"
                     android:textSize="24sp"
                     tools:ignore="HardcodedText" />
@@ -121,13 +155,48 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/prepostPostPlus"
-                    android:contentDescription="@string/prepostPostPlus_description"
                     style="@style/BorderedButton"
+                    android:contentDescription="@string/prepostPostPlus_description"
                     android:text="+"
                     android:textSize="24sp"
                     tools:ignore="HardcodedText" />
 
+
+            </TableRow>
+
+            <TableRow>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_span="7">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        app:srcCompat="@drawable/ic_baseline_volume_down_24"
+                        app:tint="?colorPrimary" />
+
+                    <androidx.appcompat.widget.AppCompatSeekBar
+                        android:id="@+id/postVolume"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:min="0"
+                        android:progress="100" />
+
+                    <TextView
+                        android:id="@+id/postVolumeText"
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="100%"
+                        tools:ignore="HardcodedText" />
+
+                </LinearLayout>
             </TableRow>
         </TableLayout>
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

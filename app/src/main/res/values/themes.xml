@@ -64,6 +64,30 @@
         <item name="android:textIsSelectable">false</item>
     </style>
 
+    <style name="RoundButton">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
+        <item name="backgroundTint">@android:color/black</item>
+        <item name="iconTint">?colorPrimary</item>
+        <item name="iconSize">30dp</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="strokeColor">?colorPrimary</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+    <style name="ColorButton" parent="@style/RoundButton">
+        <item name="icon">@drawable/baseline_palette_24</item>
+    </style>
+
     <style name="loop">
         <item name="loopTrackSelectedColor">@color/selected_track</item>
         <item name="loopTrackUnselectedColor">@android:color/transparent</item>

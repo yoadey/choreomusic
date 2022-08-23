@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -45,6 +46,39 @@ public class PrePostDialogFragment extends DialogFragment {
         View leadOutMinusButton = rootView.findViewById(R.id.prepostPostMinus);
         leadOutMinusButton.setOnClickListener(view -> changeValue(leadOutTextView, -1));
 
+        TextView preVolumeText = rootView.findViewById(R.id.preVolumeText);
+        SeekBar preVolume = rootView.findViewById(R.id.preVolume);
+        preVolume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                preVolumeText.setText(progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+        preVolume.setProgress((int) (playbackControl.getLeadInVolume() * 100));
+
+
+        TextView postVolumeText = rootView.findViewById(R.id.postVolumeText);
+        SeekBar postVolume = rootView.findViewById(R.id.postVolume);
+        postVolume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                postVolumeText.setText(progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+        postVolume.setProgress((int) (playbackControl.getLeadOutVolume() * 100));
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         return builder
                 .setIcon(R.drawable.baseline_more_time_24)
@@ -52,8 +86,10 @@ public class PrePostDialogFragment extends DialogFragment {
                 .setView(rootView)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.ok, (dialog, which) -> {
-                    playbackControl.setLeadInTime(Integer.parseInt(leadInTextView.getText().toString()) * 1000);
-                    playbackControl.setLeadOutTime(Integer.parseInt(leadOutTextView.getText().toString()) * 1000);
+                    playbackControl.setLeadInTime(Integer.parseInt(leadInTextView.getText().toString()) * 1000L);
+                    playbackControl.setLeadOutTime(Integer.parseInt(leadOutTextView.getText().toString()) * 1000L);
+                    playbackControl.setLeadInVolume(preVolume.getProgress() / 100.0f);
+                    playbackControl.setLeadOutVolume(postVolume.getProgress() / 100.0f);
                 })
                 .create();
     }

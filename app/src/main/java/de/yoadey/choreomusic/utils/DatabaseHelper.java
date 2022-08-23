@@ -141,6 +141,9 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
             if (oldVersion <= 2 && newVersion >= 3) {
                 db.execSQL("ALTER TABLE '" + SongDao.TABLENAME + "' ADD '" + SongDao.Properties.FileSupportsTracks.columnName + "' INTEGER DEFAULT 1 NOT NULL ");
             }
+            if (oldVersion <= 3 && newVersion >= 4) {
+                db.execSQL("ALTER TABLE '" + TrackDao.TABLENAME + "' ADD '" + TrackDao.Properties.Color.columnName + "' INTEGER DEFAULT 0 NOT NULL ");
+            }
         }
     }
 }
