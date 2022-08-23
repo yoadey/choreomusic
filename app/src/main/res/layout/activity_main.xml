@@ -26,12 +26,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/main_area"
-            android:contentDescription="@string/main_area_description"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1">
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/main_area"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:contentDescription="@string/main_area_description" />
+
+            <TextView
+                android:id="@+id/hintsView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|bottom"
+                android:textAlignment="center"
+                android:backgroundTint="@android:color/transparent"
+                android:text="" />
+        </FrameLayout>
 
         <!-- Target view below -->
 
@@ -43,6 +58,7 @@
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="65dp"
@@ -55,22 +71,29 @@
                         android:layout_weight="1" />
 
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/loop"
+                    <FrameLayout
+                        style="@style/MainButton"
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="0dp"
                         android:contentDescription="@string/loop_description"
-                        style="@style/MainButton"
-                        app:icon="@drawable/baseline_more_time_24" />
+                        android:orientation="vertical"
+                        android:padding="0dp">
 
-                    <Space
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/loop"
+                            style="@style/MainButton"
+                            android:layout_gravity="center|top"
+                            android:contentDescription="@string/loop_description"
+                            app:icon="@drawable/baseline_more_time_24" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/add_track"
-                        android:contentDescription="@string/add_track_description"
-                        style="@style/MainButton"
-                        app:icon="@drawable/baseline_playlist_add_24" />
+                        <TextView
+                            android:id="@+id/loopText"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center|bottom"
+                            android:text="" />
+                    </FrameLayout>
 
                     <Space
                         android:layout_width="wrap_content"
@@ -79,16 +102,39 @@
 
                     <FrameLayout
                         style="@style/MainButton"
-                        android:contentDescription="@string/speed_description"
+                        android:layout_width="100dp"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
                         android:layout_margin="0dp"
+                        android:contentDescription="@string/add_track_description"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/add_track"
+                            style="@style/MainButton"
+                            android:layout_gravity="center|top"
+                            android:contentDescription="@string/add_track_description"
+                            app:icon="@drawable/baseline_playlist_add_24" />
+                    </FrameLayout>
+
+                    <Space
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+
+                    <FrameLayout
+                        style="@style/MainButton"
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="0dp"
+                        android:contentDescription="@string/speed_description"
+                        android:orientation="vertical"
                         android:padding="0dp">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/speed"
                             style="@style/MainButton"
-                            android:layout_gravity="center"
+                            android:layout_gravity="center|top"
                             app:icon="@drawable/baseline_speed_24" />
 
                         <TextView
@@ -96,7 +142,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center|bottom"
-                            android:text=""/>
+                            android:text="" />
                     </FrameLayout>
 
                     <Space
@@ -131,13 +177,13 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             app:wave_background_color="@color/primary"
-                            app:wave_visible_progress="120000"
                             app:wave_corner_radius="0dp"
                             app:wave_gap="0dp"
                             app:wave_gravity="center"
                             app:wave_min_height="2dp"
                             app:wave_progress="0"
                             app:wave_progress_color="@color/secondary"
+                            app:wave_visible_progress="120000"
                             app:wave_width="1px" />
 
                         <TextView
@@ -145,7 +191,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:text=""/>
+                            android:text="" />
                     </FrameLayout>
 
                     <Space
@@ -183,8 +229,8 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/previous"
-                        android:contentDescription="@string/previous_description"
                         style="@style/MainButton"
+                        android:contentDescription="@string/previous_description"
                         app:icon="@drawable/baseline_skip_previous_24" />
 
                     <Space
@@ -194,8 +240,8 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/stop"
-                        android:contentDescription="@string/stop_description"
                         style="@style/MainButton"
+                        android:contentDescription="@string/stop_description"
                         app:icon="@drawable/baseline_stop_24" />
 
                     <Space
@@ -205,8 +251,8 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/playpause"
-                        android:contentDescription="@string/playpause_description"
-                        style="@style/PlayButton" />
+                        style="@style/PlayButton"
+                        android:contentDescription="@string/playpause_description" />
 
                     <Space
                         android:layout_width="wrap_content"
@@ -215,8 +261,8 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/next"
-                        android:contentDescription="@string/next_description"
                         style="@style/MainButton"
+                        android:contentDescription="@string/next_description"
                         app:icon="@drawable/baseline_skip_next_24" />
 
                     <Space

@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.os.Handler;
 import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
@@ -24,12 +26,14 @@ import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.dhaval2404.colorpicker.util.ColorUtil;
 import com.google.android.material.button.MaterialButton;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,11 +47,13 @@ import de.yoadey.choreomusic.ui.popups.EditDialogFragment;
 public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<TrackViewAdapter.TrackViewHolder>
         implements ServiceConnection, Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
 
+    private static final long BLINK_INTERVAL = 75;
+    private static final int BLINK_COUNT = 15;
     private final Context context;
     private final Map<Track, ConstraintLayout> trackToLayout;
+    private final Handler handler = new Handler();
     private PlaybackControl playbackControl;
     private Playlist playlist;
-
     private ConstraintLayout currentTrack;
     private RecyclerView recyclerView;
 
@@ -110,7 +116,15 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     }
 
     private void initializeListeners(int i, Track track, ConstraintLayout layout) {
-        layout.setOnClickListener(view -> playbackControl.seekTo(track));
+        layout.setOnClickListener(view -> {
+            playbackControl.seekTo(track);
+            if (playbackControl.getCurrentTrack() != track) {
+                blinkTrack(track, layout);
+                // Currently the toast with the lead in time is disabled, doesn't look good
+                //String leadInTimeHint = String.format(Locale.ENGLISH, context.getString(R.string.add_lead_in_time), playbackControl.getLeadInTime() / 1000);
+                //Toast.makeText(context, leadInTimeHint, Toast.LENGTH_SHORT).show();
+            }
+        });
         layout.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
             MenuItem editItem = menu.add(R.string.track_edit);
             editItem.setOnMenuItemClickListener(item -> {
@@ -298,13 +312,39 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
 
     private int getBrighterColor(int color) {
         int[] colors = context.getResources().getIntArray(R.array.trackColors);
-        for(int i = 0; i < colors.length; i++) {
-            if(color == colors[i]) {
+        for (int i = 0; i < colors.length; i++) {
+            if (color == colors[i]) {
                 return context.getResources().getIntArray(R.array.trackSelectedColors)[i];
             }
         }
 
         return getColor(R.attr.loopTrackSelectedColor);
+    }
+
+    private void blinkTrack(Track track, ConstraintLayout layout) {
+        int[] counter = new int[]{0};
+        handler.post(new Runnable() {
+            public void run() {
+                try {
+                    int[] color = new int[]{track.getColor()};
+                    color[0] = ColorUtils.blendARGB(getBrighterColor(color[0]), color[0], counter[0]*1.0f/BLINK_COUNT);
+
+                    // Restart handler
+                    if (counter[0]++ < BLINK_COUNT) {
+                        handler.postDelayed(this, BLINK_INTERVAL);
+                    } else {
+                        if (playbackControl.getCurrentTrack() == track) {
+                            color[0] = getBrighterColor(track.getColor());
+                        } else {
+                            color[0] = track.getColor();
+                        }
+                    }
+                    ((MainActivity) context).runOnUiThread(() -> layout.setBackgroundColor(color[0]));
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+        });
     }
 
     @Override
@@ -322,7 +362,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
                 Optional.ofNullable(trackToLayout.get(track))
                         .map(layout -> (ProgressBar) layout.findViewById(R.id.trackProgressBar))
                         // Don't show progress if it isn't the current track
-                        .ifPresent(pb -> pb.setProgress(progress > pb.getMax() ? 0 : progress)));
+                        .ifPresent(pb -> pb.setProgress(progress >= pb.getMax() ? 0 : progress)));
     }
 
     public void onDestroy() {

@@ -66,7 +66,7 @@ public class Playlist {
         for (int i = 0; i < tracks.size(); i++) {
             lastTrack = nextTrack;
             nextTrack = tracks.get(i);
-            if (lastTrack != null && position >= lastTrack.getPosition() && position <= nextTrack.getPosition()) {
+            if (lastTrack != null && position >= lastTrack.getPosition() && position < nextTrack.getPosition()) {
                 return lastTrack;
             }
         }

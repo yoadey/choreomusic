@@ -55,7 +55,6 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Service to handle the player and manage the current state, independent from the UI.
@@ -82,7 +81,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     /**
      * Time in ms in which the music fades into the original volume before the track
      */
-    private static final long FADE_IN_DURATION = 2000;
+    private static final long FADE_IN_DURATION = 1000;
     /**
      * Background thread for handling the loop
      */
@@ -410,7 +409,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void setLoopStart(Track loopStart) {
         this.loopStart = loopStart;
-        fireEvent(l -> l.onLoopChanged(this.loopStart, this.loopEnd));
+        fireEvent(l -> l.onLoopChanged(this.leadInTime, this.loopStart, this.leadOutTime, this.loopEnd));
     }
 
     public long getLoopStartPosition() {
@@ -422,7 +421,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
     public void setLoopEnd(Track loopEnd) {
         this.loopEnd = loopEnd;
-        fireEvent(l -> l.onLoopChanged(this.loopStart, this.loopEnd));
+        fireEvent(l -> l.onLoopChanged(this.leadInTime, this.loopStart, this.leadOutTime, this.loopEnd));
     }
 
     public long getLoopEndPosition() {
@@ -441,6 +440,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             editor.putLong(Constants.SP_KEY_LEAD_IN_TIME, leadInTime);
             editor.apply();
         }
+
+        fireEvent(l -> l.onLoopChanged(this.leadInTime, this.loopStart, this.leadOutTime, this.loopEnd));
     }
 
     public void setLeadOutTime(long leadOutTime) {
@@ -453,6 +454,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             editor.putLong(Constants.SP_KEY_LEAD_OUT_TIME, leadOutTime);
             editor.apply();
         }
+
+        fireEvent(l -> l.onLoopChanged(this.leadInTime, this.loopStart, this.leadOutTime, this.loopEnd));
     }
 
     public void setLeadInVolume(float leadInOutVolume) {
@@ -623,17 +626,14 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
                 // Fade between lead in and out
                 float volume = (leadOutVolume - leadInVolume) * (FADE_IN_DURATION - position) / FADE_IN_DURATION + leadInVolume;
-                player.setVolume(volume*volume);
-                Log.i("PlaybackControl", "checkVolume1: " + volume);
+                player.setVolume(volume);
             } else if (position > FADE_IN_DURATION) {
                 // Lead in / out part
-                player.setVolume(leadInOutVolume*leadInOutVolume);
-                Log.i("PlaybackControl", "checkVolume2: " + leadInOutVolume);
+                player.setVolume(leadInOutVolume);
             } else {
                 // Fade part between main
                 float volume = (1.0f - leadInOutVolume) * (FADE_IN_DURATION - position) / FADE_IN_DURATION + leadInOutVolume;
-                player.setVolume(volume*volume);
-                Log.i("PlaybackControl", "checkVolume3: " + volume);
+                player.setVolume(volume);
             }
         } else {
             player.setVolume(1.0f);
@@ -719,11 +719,10 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         /**
          * Called, whenever the loop changes or is deactivated. If not both a and b are set, no
          * loop is active.
-         *
-         * @param a the start track of the loop if set, otherwise null
+         *  @param a the start track of the loop if set, otherwise null
          * @param b the end track of the loop if set, otherwise null
          */
-        default void onLoopChanged(Track a, Track b) {
+        default void onLoopChanged(long leadInTime, Track a, long leadOutTime, Track b) {
         }
 
         default void onSpeedChanged(float newSpeed) {

@@ -623,6 +623,21 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     }
 
     @Override
+    public void onLoopChanged(long leadInTime, Track a, long leadOutTime, Track b) {
+        MaterialButton button = findViewById(R.id.loop);
+        TextView textView = findViewById(R.id.loopText);
+        runOnUiThread(() -> {
+            if (a != null && b != null && (leadInTime != 0L || leadOutTime != 0L)) {
+                button.setIconTintResource(R.color.secondary);
+                textView.setText(String.format(Locale.ENGLISH, "-%ds +%ds", leadInTime/1000, leadOutTime/1000));
+            } else {
+                button.setIconTintResource(R.color.primary);
+                textView.setText("");
+            }
+        });
+    }
+
+    @Override
     public void onSpeedChanged(float newSpeed) {
         MaterialButton button = findViewById(R.id.speed);
         TextView textView = findViewById(R.id.speedText);

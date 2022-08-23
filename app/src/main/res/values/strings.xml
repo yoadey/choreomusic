@@ -65,4 +65,5 @@
     <string name="warn_track_deleted_title">Track not opened</string>
     <string name="warn_track_deleted_message">Track {0} was deleted/could not be opened and is deleted from the list.</string>
     <string name="edit_track_color_dialog">Track color</string>
+    <string name="add_lead_in_time">Adding %ds lead in time</string>
 </resources>

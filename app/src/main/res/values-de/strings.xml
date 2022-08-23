@@ -66,4 +66,5 @@
     <string name="warn_track_deleted_title">Track nicht geöffnet</string>
     <string name="warn_track_deleted_message">Track {0} wurde gelöscht oder konnte nicht geöffnet werden</string>
     <string name="edit_track_color_dialog">Track Farbe</string>
+    <string name="add_lead_in_time">Füge %ds Vorlaufzeit hinzu</string>
 </resources>
