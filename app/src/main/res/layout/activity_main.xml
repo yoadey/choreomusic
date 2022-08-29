@@ -43,9 +43,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center|bottom"
-                android:textAlignment="center"
                 android:backgroundTint="@android:color/transparent"
-                android:text="" />
+                android:text=""
+                android:textAlignment="center" />
         </FrameLayout>
 
         <!-- Target view below -->
@@ -87,12 +87,33 @@
                             android:contentDescription="@string/loop_description"
                             app:icon="@drawable/baseline_more_time_24" />
 
-                        <TextView
-                            android:id="@+id/loopText"
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center|bottom"
-                            android:text="" />
+                            android:layout_height="65dp"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/loopTextPre"
+                                android:layout_width="47dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0"
+                                android:gravity="right|bottom"
+                                android:text="" />
+
+                            <Space
+                                android:layout_width="6dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/loopTextPost"
+                                android:layout_width="47dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0"
+                                android:gravity="left|bottom"
+                                android:text="" />
+                        </LinearLayout>
                     </FrameLayout>
 
                     <Space

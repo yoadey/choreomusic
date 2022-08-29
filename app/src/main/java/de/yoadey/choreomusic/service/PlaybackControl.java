@@ -15,7 +15,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
@@ -45,6 +44,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
@@ -96,7 +96,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private Looper looper = Looper.myLooper();
     /**
      * Observe the playback time, so the UI can react to it.
-     *
+     * <p>
      * In JUnit, the looper will be null and not mocked, so we won't be able to have an observer.
      */
     public Observable<Long> playbackProgressObservable = looper != null ?
@@ -161,6 +161,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     private float leadOutVolume = 1.0f;
 
     private File localFile;
+    private Notification notification;
 
     public PlaybackControl() {
         listeners = new HashSet<>();
@@ -187,7 +188,12 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 if (isPlaying) {
+                    // Whenever music is playing, it must be a foreground service, so it won't get
+                    // killed
+                    startForeground(PLAYBACK_NOTIFICATION_ID, notification);
                     startLoopingThread();
+                } else {
+                    stopForeground(false);
                 }
                 fireEvent(l -> l.onIsPlayingChanged(isPlaying));
             }
@@ -212,12 +218,13 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         if (playerNotificationManager != null) {
             return;
         }
-        playerNotificationManager = new PlayerNotificationManager.Builder(getApplicationContext(), PLAYBACK_NOTIFICATION_ID, PLAYBACK_CHANNEL_ID)
+        playerNotificationManager = new PlayerNotificationManager.Builder(this, PLAYBACK_NOTIFICATION_ID, PLAYBACK_CHANNEL_ID)
                 .setNotificationListener(new PlayerNotificationManager.NotificationListener() {
                     @Override
                     public void onNotificationPosted(int notificationId, Notification notification, boolean ongoing) {
-                        // Must be started as a ForegroundService, since it plays music and should not be killed
-                        startForeground(notificationId, notification);
+                        if (PlaybackControl.this.notification != notification) {
+                            PlaybackControl.this.notification = notification;
+                        }
                     }
                 })
                 .setChannelNameResourceId(R.string.playback_channel_name)
@@ -227,7 +234,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     @Override
                     public String getCurrentContentTitle(@NotNull Player player) {
                         if (currentSong == null) {
-                            return "Nothing loaded";
+                            return getString(R.string.notification_nothing_loaded);
                         }
                         return currentSong.getTitle();
                     }
@@ -260,7 +267,9 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                         return bitmap;
                     }
                 })
+                .setStopActionIconResourceId(R.drawable.ic_outline_close_24)
                 .build();
+
         ForwardingPlayer forwardingPlayer = new ForwardingPlayer(player) {
             @Override
             public void seekToPrevious() {
@@ -278,6 +287,13 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     return nextTrack != null;
                 }
                 return super.isCommandAvailable(command);
+            }
+
+            @Override
+            public void stop() {
+                playerNotificationManager.setPlayer(null);
+                stopForeground(true);
+                ((MainActivity) getApplicationContext()).finishAndRemoveTask();
             }
         };
         playerNotificationManager.setPlayer(forwardingPlayer);
@@ -388,9 +404,10 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         seekTo(0);
     }
 
-    public void seekTo(int progress) {
+    public void seekTo(long progress) {
         exoHandler.post(() -> player.seekTo(progress));
-        checkTrack();
+        // Use method with explicit progress set, as the player will update somewhere later
+        checkTrack(progress);
     }
 
     public long getCurrentPosition() {
@@ -435,7 +452,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         this.leadInTime = leadInTime;
 
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
-        if(sharedPreferences != null) {
+        if (sharedPreferences != null) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putLong(Constants.SP_KEY_LEAD_IN_TIME, leadInTime);
             editor.apply();
@@ -449,7 +466,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
 
 
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
-        if(sharedPreferences != null) {
+        if (sharedPreferences != null) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putLong(Constants.SP_KEY_LEAD_OUT_TIME, leadOutTime);
             editor.apply();
@@ -462,7 +479,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         this.leadInVolume = leadInOutVolume;
 
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
-        if(sharedPreferences != null) {
+        if (sharedPreferences != null) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putFloat(Constants.SP_KEY_LEAD_IN_VOLUME, leadInOutVolume);
             editor.apply();
@@ -473,7 +490,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         this.leadOutVolume = leadInOutVolume;
 
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SP_PLAYBACK, MODE_PRIVATE);
-        if(sharedPreferences != null) {
+        if (sharedPreferences != null) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putFloat(Constants.SP_KEY_LEAD_OUT_VOLUME, leadInOutVolume);
             editor.apply();
@@ -522,10 +539,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         }
         position = Math.max(0, position);
 
-        player.seekTo(position);
-        currentTrack = playlist.getTrackForPosition(position);
-        nextTrack = playlist.getNextTrack(currentTrack);
-        fireEvent(l -> l.onTrackChanged(currentTrack));
+        seekTo(position);
     }
 
     /**
@@ -596,28 +610,40 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             // handle nevertheless
             return;
         }
-        if (currentTrack == null || nextTrack == null || player.getCurrentPosition() < currentTrack.getPosition() ||
-                player.getCurrentPosition() > nextTrack.getPosition()) {
-            currentTrack = playlist.getTrackForPosition(player.getCurrentPosition());
+        checkTrack(player.getCurrentPosition());
+    }
+
+    /**
+     * Check, whether the current track is still the current track or whether it should be changed
+     * to another one.
+     *
+     * @param position the updated position
+     */
+    private void checkTrack(long position) {
+        if (currentTrack == null || nextTrack == null ||
+                position < currentTrack.getPosition() ||
+                position >= nextTrack.getPosition()) {
+            currentTrack = playlist.getTrackForPosition(position);
             nextTrack = playlist.getNextTrack(currentTrack);
+            playerNotificationManager.invalidate();
             fireEvent(l -> l.onTrackChanged(currentTrack));
         }
     }
 
     public void checkVolume() {
-        if(player == null) {
+        if (player == null) {
             return;
         }
-        if(isLoopActive()) {
+        if (isLoopActive()) {
             long currentPosition = player.getCurrentPosition();
             long position = loopStart.getPosition() - currentPosition;
             position = position > 0 ? position : currentPosition - loopEnd.getPosition();
             float leadInOutVolume = currentPosition < loopStart.getPosition() ? leadInVolume : leadOutVolume;
 
-            if(position < 0) {
+            if (position < 0) {
                 // Loop main part
                 player.setVolume(1.0f);
-            } else if(currentPosition > getLoopEndPosition() - FADE_IN_DURATION / 2 ||
+            } else if (currentPosition > getLoopEndPosition() - FADE_IN_DURATION / 2 ||
                     currentPosition < getLoopStartPosition() + FADE_IN_DURATION / 2) {
                 position = currentPosition < loopStart.getPosition() ?
                         currentPosition - getLoopStartPosition() :
@@ -719,7 +745,8 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         /**
          * Called, whenever the loop changes or is deactivated. If not both a and b are set, no
          * loop is active.
-         *  @param a the start track of the loop if set, otherwise null
+         *
+         * @param a the start track of the loop if set, otherwise null
          * @param b the end track of the loop if set, otherwise null
          */
         default void onLoopChanged(long leadInTime, Track a, long leadOutTime, Track b) {

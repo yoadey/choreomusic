@@ -12,8 +12,8 @@
     <string name="track_edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="prepost_title">Preparation time</string>
-    <string name="prepost_prelabel">Lead-in time:</string>
-    <string name="prepost_postlabel">Lead-out time:</string>
+    <string name="prepost_prelabel">Lead-in time</string>
+    <string name="prepost_postlabel">Lead-out time</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="playback_channel_name">Choreo Music</string>
@@ -66,4 +66,5 @@
     <string name="warn_track_deleted_message">Track {0} was deleted/could not be opened and is deleted from the list.</string>
     <string name="edit_track_color_dialog">Track color</string>
     <string name="add_lead_in_time">Adding %ds lead in time</string>
+    <string name="notification_nothing_loaded">Nothing loaded</string>
 </resources>

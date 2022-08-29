@@ -2,11 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="fill_parent"
     android:layout_height="wrap_content">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="20dp"
@@ -16,72 +16,99 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TableLayout
-            android:id="@+id/tableLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:ignore="UselessParent">
 
-            <TableRow
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="fill_parent"
+            android:layout_height="120dp">
+
+            <View
+                android:id="@+id/prepost_precontent"
+                android:layout_margin="8dp"
+                android:layout_height="0dp"
+                android:layout_width="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/prepost_prelabel"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="@string/prepost_prelabel"
+                app:layout_constraintBottom_toTopOf="@+id/prepost_precontent"
+                app:layout_constraintLeft_toLeftOf="@+id/prepost_precontent"
+                app:layout_constraintTop_toTopOf="@+id/prepost_precontent"
+                tools:ignore="RtlHardcoded" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/prepost_prelabel" />
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:orientation="vertical">
 
-                <EditText
-                    android:id="@+id/prepostPreTime"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:contentDescription="@string/prepostPreTime_description"
-                    android:digits="0123456789"
-                    android:ems="2"
-                    android:importantForAutofill="no"
-                    android:inputType="number"
-                    android:text="10"
-                    android:textAlignment="viewEnd"
-                    tools:ignore="HardcodedText,LabelFor" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="s"
-                    tools:ignore="HardcodedText" />
 
                 <Space
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
                     android:layout_weight="1" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/prepostPreMinus"
-                    style="@style/BorderedButton"
-                    android:contentDescription="@string/prepostPreMinus_description"
-                    android:text="-"
-                    android:textSize="24sp"
-                    tools:ignore="HardcodedText" />
-
-                <Space
+                <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                    android:layout_gravity="right">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/prepostPrePlus"
-                    style="@style/BorderedButton"
-                    android:contentDescription="@string/prepostPrePlus_description"
-                    android:text="+"
-                    android:textSize="24sp"
-                    tools:ignore="HardcodedText" />
 
-            </TableRow>
+                    <EditText
+                        android:id="@+id/prepostPreTime"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:contentDescription="@string/prepostPreTime_description"
+                        android:digits="0123456789"
+                        android:ems="2"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:text="10"
+                        android:textAlignment="viewEnd"
+                        tools:ignore="HardcodedText,LabelFor" />
 
-            <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="s"
+                        tools:ignore="HardcodedText" />
+
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/prepostPreMinus"
+                        style="@style/BorderedButton"
+                        android:contentDescription="@string/prepostPreMinus_description"
+                        android:text="-"
+                        android:textSize="24sp"
+                        tools:ignore="HardcodedText" />
+
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/prepostPrePlus"
+                        style="@style/BorderedButton"
+                        android:contentDescription="@string/prepostPrePlus_description"
+                        android:text="+"
+                        android:textSize="24sp"
+                        tools:ignore="HardcodedText" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_span="7">
+                    android:layout_height="wrap_content">
 
                     <ImageView
                         android:layout_width="wrap_content"
@@ -105,71 +132,102 @@
                         android:layout_height="wrap_content"
                         android:text="100%"
                         tools:ignore="HardcodedText" />
-
                 </LinearLayout>
-            </TableRow>
+            </LinearLayout>
 
-            <TableRow
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="fill_parent"
+            android:layout_height="120dp">
+
+            <View
+                android:id="@+id/prepost_postcontent"
+                android:layout_margin="8dp"
+                android:layout_height="0dp"
+                android:layout_width="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/prepost_postlabel"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="@string/prepost_postlabel"
+                app:layout_constraintBottom_toTopOf="@+id/prepost_postcontent"
+                app:layout_constraintLeft_toLeftOf="@+id/prepost_postcontent"
+                app:layout_constraintTop_toTopOf="@+id/prepost_postcontent" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/prepost_postlabel" />
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:orientation="vertical">
 
-                <EditText
-                    android:id="@+id/prepostPostTime"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:contentDescription="@string/prepostPostTime_description"
-                    android:digits="0123456789"
-                    android:ems="2"
-                    android:importantForAutofill="no"
-                    android:inputType="number"
-                    android:text="10"
-                    android:textAlignment="viewEnd"
-                    tools:ignore="HardcodedText,LabelFor" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="s"
-                    tools:ignore="HardcodedText" />
 
                 <Space
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
                     android:layout_weight="1" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/prepostPostMinus"
-                    style="@style/BorderedButton"
-                    android:contentDescription="@string/prepostPostMinus_description"
-                    android:text="-"
-                    android:textSize="24sp"
-                    tools:ignore="HardcodedText" />
-
-                <Space
+                <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/prepostPostPlus"
-                    style="@style/BorderedButton"
-                    android:contentDescription="@string/prepostPostPlus_description"
-                    android:text="+"
-                    android:textSize="24sp"
-                    tools:ignore="HardcodedText" />
+                    android:layout_gravity="end">
 
 
-            </TableRow>
+                    <EditText
+                        android:id="@+id/prepostPostTime"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:contentDescription="@string/prepostPostTime_description"
+                        android:digits="0123456789"
+                        android:ems="2"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:text="10"
+                        android:textAlignment="viewEnd"
+                        tools:ignore="HardcodedText,LabelFor" />
 
-            <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="s"
+                        tools:ignore="HardcodedText" />
+
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/prepostPostMinus"
+                        style="@style/BorderedButton"
+                        android:contentDescription="@string/prepostPostMinus_description"
+                        android:text="-"
+                        android:textSize="24sp"
+                        tools:ignore="HardcodedText" />
+
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/prepostPostPlus"
+                        style="@style/BorderedButton"
+                        android:contentDescription="@string/prepostPostPlus_description"
+                        android:text="+"
+                        android:textSize="24sp"
+                        tools:ignore="HardcodedText" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_span="7">
+                    android:layout_height="wrap_content">
 
                     <ImageView
                         android:layout_width="wrap_content"
@@ -193,10 +251,10 @@
                         android:layout_height="wrap_content"
                         android:text="100%"
                         tools:ignore="HardcodedText" />
-
                 </LinearLayout>
-            </TableRow>
-        </TableLayout>
 
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

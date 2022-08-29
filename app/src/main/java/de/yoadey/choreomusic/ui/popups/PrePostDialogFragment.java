@@ -4,6 +4,7 @@ package de.yoadey.choreomusic.ui.popups;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,8 +15,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
+import com.google.android.material.shape.RoundedCornerTreatment;
+import com.google.android.material.shape.ShapeAppearanceModel;
+
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.service.PlaybackControl;
+import de.yoadey.choreomusic.ui.layouts.CutoutDrawable;
 
 public class PrePostDialogFragment extends DialogFragment {
 
@@ -29,8 +34,16 @@ public class PrePostDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+
         LayoutInflater inflater = getLayoutInflater();
         View rootView = inflater.inflate(R.layout.popup_preposttime, null);
+
+        View prepos_precontent = rootView.findViewById(R.id.prepost_precontent);
+        View prepos_prelabel = rootView.findViewById(R.id.prepost_prelabel);
+        cutoutFrame(prepos_precontent, prepos_prelabel);
+        View prepos_postcontent = rootView.findViewById(R.id.prepost_postcontent);
+        View prepos_postlabel = rootView.findViewById(R.id.prepost_postlabel);
+        cutoutFrame(prepos_postcontent, prepos_postlabel);
 
         TextView leadInTextView = rootView.findViewById(R.id.prepostPreTime);
         leadInTextView.setText(Long.toString(playbackControl.getLeadInTime() / 1000L));
@@ -55,10 +68,12 @@ public class PrePostDialogFragment extends DialogFragment {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) { }
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) { }
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
         preVolume.setProgress((int) (playbackControl.getLeadInVolume() * 100));
 
@@ -72,10 +87,12 @@ public class PrePostDialogFragment extends DialogFragment {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) { }
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) { }
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
         postVolume.setProgress((int) (playbackControl.getLeadOutVolume() * 100));
 
@@ -92,6 +109,34 @@ public class PrePostDialogFragment extends DialogFragment {
                     playbackControl.setLeadOutVolume(postVolume.getProgress() / 100.0f);
                 })
                 .create();
+    }
+
+    private void cutoutFrame(View content, View label) {
+        // configuration of the shape for the outline
+        ShapeAppearanceModel shape = new ShapeAppearanceModel.Builder()
+                .setAllCorners(new RoundedCornerTreatment())
+                .setAllCornerSizes(16f)
+                .build();
+
+        CutoutDrawable drawable = new CutoutDrawable(shape);
+        drawable.setStroke(4f, getContext().getColor(R.color.primary));
+        drawable.setFillColor(ColorStateList.valueOf(0));
+
+        content.setBackground(drawable);
+        label.addOnLayoutChangeListener((v, left, top, right, bottom, ol, ot, or, ob) -> {
+                    // offset the position by the margin of the content view
+                    int realLeft = left - content.getLeft();
+                    int realTop = top - content.getTop();
+                    int realRigth = right - content.getLeft();
+                    int realBottom = bottom - content.getTop();
+                    // update the cutout part of the drawable
+                    drawable.setCutout(
+                            (float) realLeft,
+                            (float) realTop,
+                            (float) realRigth,
+                            (float) realBottom);
+                }
+        );
     }
 
     @SuppressLint("SetTextI18n")

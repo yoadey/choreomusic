@@ -13,8 +13,8 @@
     <string name="track_edit">Bearbeiten</string>
     <string name="delete">Löschen</string>
     <string name="prepost_title">Vorbereitungszeit</string>
-    <string name="prepost_prelabel">Vorlauf:</string>
-    <string name="prepost_postlabel">Nachlauf:</string>
+    <string name="prepost_prelabel">Vorlauf</string>
+    <string name="prepost_postlabel">Nachlauf</string>
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
     <string name="playback_channel_name">Choreo Music</string>
@@ -67,4 +67,5 @@
     <string name="warn_track_deleted_message">Track {0} wurde gelöscht oder konnte nicht geöffnet werden</string>
     <string name="edit_track_color_dialog">Track Farbe</string>
     <string name="add_lead_in_time">Füge %ds Vorlaufzeit hinzu</string>
+    <string name="notification_nothing_loaded">Nichts geladen</string>
 </resources>

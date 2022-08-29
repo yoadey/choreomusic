@@ -57,6 +57,8 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     private ConstraintLayout currentTrack;
     private RecyclerView recyclerView;
 
+    private int blinkId = 0;
+
     public TrackViewAdapter(Context context) {
         this.context = context;
         trackToLayout = new HashMap<>();
@@ -322,6 +324,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
     }
 
     private void blinkTrack(Track track, ConstraintLayout layout) {
+        int id = ++blinkId;
         int[] counter = new int[]{0};
         handler.post(new Runnable() {
             public void run() {
@@ -330,7 +333,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
                     color[0] = ColorUtils.blendARGB(getBrighterColor(color[0]), color[0], counter[0]*1.0f/BLINK_COUNT);
 
                     // Restart handler
-                    if (counter[0]++ < BLINK_COUNT) {
+                    if (id == blinkId && counter[0]++ < BLINK_COUNT) {
                         handler.postDelayed(this, BLINK_INTERVAL);
                     } else {
                         if (playbackControl.getCurrentTrack() == track) {

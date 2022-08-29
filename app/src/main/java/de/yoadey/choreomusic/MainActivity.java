@@ -229,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         playlist.addPlaylistListener(databaseHelper);
         openFile(fileToOpen);
         reloadLastFile();
+        onLoopChanged(playbackControl.getLeadInTime(), playbackControl.getLoopStart(), playbackControl.getLeadOutTime(), playbackControl.getLoopEnd());
     }
 
     @Override
@@ -625,14 +626,29 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
     @Override
     public void onLoopChanged(long leadInTime, Track a, long leadOutTime, Track b) {
         MaterialButton button = findViewById(R.id.loop);
-        TextView textView = findViewById(R.id.loopText);
+        TextView textViewPre = findViewById(R.id.loopTextPre);
+        TextView textViewPost = findViewById(R.id.loopTextPost);
         runOnUiThread(() -> {
-            if (a != null && b != null && (leadInTime != 0L || leadOutTime != 0L)) {
+            boolean active = false;
+            if (leadInTime != 0L) {
+                active = true;
+                textViewPre.setText(String.format(Locale.ENGLISH, "-%ds", leadInTime / 1000));
+            } else {
+                textViewPre.setText("");
+            }
+
+            // Show post time only, if loop is active, as otherwise not releant
+            if (a != null && b != null && (leadOutTime != 0L)) {
+                active = true;
+                textViewPost.setText(String.format(Locale.ENGLISH, "+%ds", leadOutTime / 1000));
+            } else {
+                textViewPost.setText("");
+            }
+
+            if (active) {
                 button.setIconTintResource(R.color.secondary);
-                textView.setText(String.format(Locale.ENGLISH, "-%ds +%ds", leadInTime/1000, leadOutTime/1000));
             } else {
                 button.setIconTintResource(R.color.primary);
-                textView.setText("");
             }
         });
     }
