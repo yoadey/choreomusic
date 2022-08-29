@@ -9,4 +9,11 @@
         app:defaultValue="true"
         app:summary="@string/pref_leadin_track_switch_summary"/>
 
+    <SwitchPreferenceCompat
+        app:defaultValue="false"
+        app:icon="@drawable/baseline_more_time_24"
+        app:key="detailedWaveformSeekbar"
+        app:summary="@string/pref_detailed_waveform_switch_summary"
+        app:title="@string/pref_detailed_waveform_switch_title" />
+
 </PreferenceScreen>

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -15,7 +16,7 @@ public class Playlist {
     private final Set<PlaylistListener> listeners;
 
     public Playlist() {
-        listeners = new HashSet<>();
+        listeners = ConcurrentHashMap.newKeySet();
         this.tracks = new ArrayList<>();
     }
 
@@ -31,11 +32,11 @@ public class Playlist {
         }
         tracks.add(track);
         tracks.sort((o1, o2) -> Long.compare(o1.getPosition(), o2.getPosition()));
-        listeners.forEach(l -> l.onPlaylistChanged(singletonList(track), emptyList(), getTracks()));
+        firePlaylistChanged(singletonList(track), emptyList());
     }
 
     public void updateTrack(Track track) {
-        listeners.forEach(l -> l.onPlaylistChanged(singletonList(track), emptyList(), getTracks()));
+        firePlaylistChanged(singletonList(track), emptyList());
     }
 
     public void deleteItem(Track track) {
@@ -47,7 +48,7 @@ public class Playlist {
 
     public void deleteItem(int i) {
         Track track = tracks.remove(i);
-        listeners.forEach(l -> l.onPlaylistChanged(emptyList(), singletonList(track), getTracks()));
+        firePlaylistChanged(emptyList(), singletonList(track));
     }
 
     public void addPlaylistListener(PlaylistListener listener) {
@@ -59,12 +60,13 @@ public class Playlist {
     }
 
     public Track getTrackForPosition(long position) {
+        position = Math.max(position, 0);
         Track lastTrack = null;
         Track nextTrack = null;
         for (int i = 0; i < tracks.size(); i++) {
             lastTrack = nextTrack;
             nextTrack = tracks.get(i);
-            if (lastTrack != null && position >= lastTrack.getPosition() && position <= nextTrack.getPosition()) {
+            if (lastTrack != null && position >= lastTrack.getPosition() && position < nextTrack.getPosition()) {
                 return lastTrack;
             }
         }
@@ -81,7 +83,7 @@ public class Playlist {
         return tracks.get(i);
     }
 
-    public void reset(List<Track> tracks) {
+    public void reset(List<Track> tracks, long length) {
         Set<Track> oldTracks = new HashSet<>(this.tracks);
         this.tracks.clear();
         this.tracks.addAll(tracks);
@@ -89,8 +91,8 @@ public class Playlist {
         if (this.tracks.isEmpty() || this.tracks.stream().noneMatch(track -> track.getPosition() == 0)) {
             this.tracks.add(0, new Track(0, "Start"));
         }
-        if (this.tracks.stream().noneMatch(track -> track.getPosition() == Integer.MAX_VALUE)) {
-            this.tracks.add(new Track(Integer.MAX_VALUE, "End"));
+        if (this.tracks.stream().noneMatch(track -> track.getPosition() == length)) {
+            this.tracks.add(new Track(length, "End"));
         }
         // calculate real differences
         List<Track> newTracks = this.tracks.stream() //
@@ -99,8 +101,13 @@ public class Playlist {
         List<Track> oldTracksList = oldTracks.stream() //
                 .filter(t -> !this.tracks.contains(t)) //
                 .collect(Collectors.toList());
+        firePlaylistChanged(newTracks, oldTracksList);
+    }
+
+    private void firePlaylistChanged(List<Track> newTracks, List<Track> oldTracksList) {
         listeners.forEach(l -> l.onPlaylistChanged(newTracks, oldTracksList, getTracks()));
     }
+
 
     public interface PlaylistListener {
         void onPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter);

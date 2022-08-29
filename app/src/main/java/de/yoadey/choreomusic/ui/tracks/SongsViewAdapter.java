@@ -15,23 +15,20 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.databinding.ObservableList;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
-import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
-import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.service.PlaybackControl;
 import de.yoadey.choreomusic.utils.Utils;
 
-public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.TrackViewHolder> implements Playlist.PlaylistListener, PlaybackControl.PlaybackListener {
+public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.TrackViewHolder> implements PlaybackControl.PlaybackListener {
 
-    private final List<Song> songs;
+    private final ObservableList<Song> songs;
     private final Context context;
     private PlaybackControl playbackControl;
 
@@ -49,9 +46,10 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
         }
     };
 
-    public SongsViewAdapter(List<Song> songs, Context context) {
+    public SongsViewAdapter(ObservableList<Song> songs, Context context) {
         this.context = context;
         this.songs = songs;
+        songs.addOnListChangedCallback(new ObservableListChanged());
     }
 
     @Override
@@ -80,11 +78,11 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
         layout.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
             MenuItem deleteItem = menu.add(R.string.delete);
             deleteItem.setOnMenuItemClickListener(item -> {
-
-
                 songs.remove(song);
                 ((MainActivity) context).getDatabaseHelper().deleteSong(song);
-                playbackControl.openSong(null);
+                if(playbackControl.getCurrentSong() == song) {
+                    playbackControl.openSong(null);
+                }
                 return true;
             });
         });
@@ -112,21 +110,8 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
     }
 
     @Override
-    public void onPlaylistChanged(List<Track> newTracks, List<Track> deletedTracks, List<Track> playlistAfter) {
-        ((MainActivity) context).runOnUiThread(() -> {
-            notifyDataSetChanged();
-        });
-    }
-
-    @Override
     public void onSongChanged(Song newSong) {
-        ((MainActivity) context).runOnUiThread(() -> {
-            notifyDataSetChanged();
-        });
-    }
-
-    @Override
-    public void onTrackChanged(Track newTrack) {
+        listChanged();
     }
 
     public void onDestroy() {
@@ -135,9 +120,40 @@ public class SongsViewAdapter extends RecyclerView.Adapter<SongsViewAdapter.Trac
         }
     }
 
+    private void listChanged() {
+        ((MainActivity) context).runOnUiThread(this::notifyDataSetChanged);
+    }
+
     public static class TrackViewHolder extends RecyclerView.ViewHolder {
         public TrackViewHolder(View view) {
             super(view);
+        }
+    }
+
+    private class ObservableListChanged extends ObservableList.OnListChangedCallback<ObservableList<Song>> {
+        @Override
+        public void onChanged(ObservableList<Song> sender) {
+            listChanged();
+        }
+
+        @Override
+        public void onItemRangeChanged(ObservableList<Song> sender, int positionStart, int itemCount) {
+            listChanged();
+        }
+
+        @Override
+        public void onItemRangeInserted(ObservableList<Song> sender, int positionStart, int itemCount) {
+            listChanged();
+        }
+
+        @Override
+        public void onItemRangeMoved(ObservableList<Song> sender, int fromPosition, int toPosition, int itemCount) {
+            listChanged();
+        }
+
+        @Override
+        public void onItemRangeRemoved(ObservableList<Song> sender, int positionStart, int itemCount) {
+            listChanged();
         }
     }
 }

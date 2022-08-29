@@ -16,8 +16,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
+import com.github.dhaval2404.colorpicker.MaterialColorPickerDialog;
+import com.github.dhaval2404.colorpicker.listener.ColorListener;
+import com.github.dhaval2404.colorpicker.model.ColorShape;
 import com.google.android.material.button.MaterialButton;
 import com.masoudss.lib.WaveformSeekBar;
+
+import org.jetbrains.annotations.NotNull;
 
 import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
@@ -26,7 +31,7 @@ import de.yoadey.choreomusic.model.Song;
 import de.yoadey.choreomusic.model.Track;
 import de.yoadey.choreomusic.service.PlaybackControl;
 
-public class EditDialogFragment extends DialogFragment {
+public class EditDialogFragment extends DialogFragment implements PlaybackControl.PlaybackListener {
 
     private static final int SURROUND = 5000;
 
@@ -38,6 +43,8 @@ public class EditDialogFragment extends DialogFragment {
     private long editPosition;
     /* Whether the sample is currently playing */
     private boolean playSample;
+    /* The new color to hightlight the track */
+    private int color;
 
     private View rootView;
     private boolean threadRunning;
@@ -70,6 +77,12 @@ public class EditDialogFragment extends DialogFragment {
 
         MaterialButton play = rootView.findViewById(R.id.edittrackPlaypause);
         play.setOnClickListener(v -> onPlayChanged());
+        playbackControl.addPlaybackListener(this);
+
+        MaterialButton colorButton = rootView.findViewById(R.id.edittrackColor);
+        colorButton.setOnClickListener(v -> selectColor());
+        color = track.getColor();
+        colorButton.setBackgroundColor(color);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         return builder
@@ -80,9 +93,34 @@ public class EditDialogFragment extends DialogFragment {
                 .setPositiveButton(R.string.ok, (dialog, which) -> {
                     track.setPosition(editPosition);
                     track.setLabel(renameTextView.getText().toString());
+                    track.setColor(color);
                     playlist.updateTrack(track);
                 })
                 .create();
+    }
+
+    private void selectColor() {
+
+        int[] colors = getResources().getIntArray(R.array.trackColors);
+
+        new MaterialColorPickerDialog
+                .Builder(getContext())
+                .setTitle(R.string.edit_track_color_dialog)
+                .setColorShape(ColorShape.CIRCLE)
+                .setColorRes(colors)
+                .setDefaultColor(color)
+                .setColorListener(new ColorListener() {
+                    @Override
+                    public void onColorSelected(int newColor, @NotNull String colorHex) {
+                        if (newColor == R.color.background_color) {
+                            newColor = 0; // Transparent
+                        }
+                        EditDialogFragment.this.color = newColor;
+                        MaterialButton colorButton = rootView.findViewById(R.id.edittrackColor);
+                        colorButton.setBackgroundColor(newColor);
+                    }
+                })
+                .show();
     }
 
     @Override
@@ -90,6 +128,7 @@ public class EditDialogFragment extends DialogFragment {
         if (playSample) {
             playbackControl.pause();
         }
+        playbackControl.deletePlaybackListener(this);
         super.onDismiss(dialog);
     }
 
@@ -169,7 +208,6 @@ public class EditDialogFragment extends DialogFragment {
             play.setIconResource(R.drawable.baseline_stop_24);
             seekbar.setProgress(50);
             playbackControl.play();
-            startLoopingThread();
         } else {
             playSample = false;
             playbackControl.pause();
@@ -179,43 +217,22 @@ public class EditDialogFragment extends DialogFragment {
         }
     }
 
-    /**
-     * Background thread to update the slider and timer
-     */
-    private void startLoopingThread() {
-        synchronized (this) {
-            if (threadRunning) {
-                return;
+    @Override
+    public void onProgressChanged(int progress) {
+        MaterialButton play = rootView.findViewById(R.id.edittrackPlaypause);
+        WaveformSeekBar seekbar = rootView.findViewById(R.id.edittrackWaveformSeekBar);
+        if (playbackControl.isPlaying() && playbackControl.getCurrentPosition() < editPosition + SURROUND) {
+            long position = (playbackControl.getCurrentPosition() - editPosition) * 50 / SURROUND + 50;
+            seekbar.setProgress((int) position);
+        } else {
+            playSample = false;
+            if (playbackControl.isPlaying()) {
+                playbackControl.pause();
+                playbackControl.seekTo((int) editPosition);
+                play.setIconResource(R.drawable.baseline_play_arrow_24);
+                seekbar.setProgress(50);
             }
-
-            threadRunning = true;
         }
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                MaterialButton play = rootView.findViewById(R.id.edittrackPlaypause);
-                WaveformSeekBar seekbar = rootView.findViewById(R.id.edittrackWaveformSeekBar);
-                if (playbackControl.isPlaying() && playbackControl.getCurrentPosition() < editPosition + SURROUND) {
-                    long position = (playbackControl.getCurrentPosition() - editPosition) * 50 / SURROUND + 50;
-                    seekbar.setProgress((int) position);
-                } else {
-                    playSample = false;
-                    if (playbackControl.isPlaying()) {
-                        playbackControl.pause();
-                        playbackControl.seekTo((int) editPosition);
-                        play.setIconResource(R.drawable.baseline_play_arrow_24);
-                        seekbar.setProgress(50);
-                    }
-                }
-
-                // Restart handler
-                synchronized (this) {
-                    if (playSample) {
-                        handler.postDelayed(this, MainActivity.BACKGROUND_THREAD_DELAY);
-                    } else {
-                        threadRunning = false;
-                    }
-                }
-            }
-        }, MainActivity.BACKGROUND_THREAD_DELAY);
     }
+
 }

@@ -7,21 +7,20 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.databinding.ObservableList;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import java.util.List;
 
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.Song;
 
 public class SongsTracksAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<SongsTracksAdapter.TabViewHolder> {
     private final Context context;
-    private final List<Song> songs;
+    private final ObservableList<Song> songs;
     private SongsViewAdapter songsViewAdapter;
     private TrackViewAdapter trackViewAdapter;
 
-    public SongsTracksAdapter(Context context, List<Song> songs) {
+    public SongsTracksAdapter(Context context, ObservableList<Song> songs) {
         this.context = context;
         this.songs = songs;
     }
@@ -69,10 +68,10 @@ public class SongsTracksAdapter extends androidx.recyclerview.widget.RecyclerVie
     }
 
     public void onDestroy() {
-        if(trackViewAdapter != null) {
+        if (trackViewAdapter != null) {
             trackViewAdapter.onDestroy();
         }
-        if(songsViewAdapter != null) {
+        if (songsViewAdapter != null) {
             songsViewAdapter.onDestroy();
         }
     }

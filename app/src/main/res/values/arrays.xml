@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="trackColors">
+        <item>@color/background_color</item>
+        <item>@color/lime_900</item>
+        <item>@color/deep_orange_900</item>
+        <item>@color/pink_900</item>
+        <item>@color/red_900</item>
+        <item>@color/teal_900</item>
+        <item>@color/light_green_900</item>
+        <item>@color/green_900</item>
+        <item>@color/cyan_900</item>
+        <item>@color/light_blue_900</item>
+        <item>@color/blue_900</item>
+        <item>@color/indigo_900</item>
+        <item>@color/deep_purple_900</item>
+        <item>@color/purple_900</item>
+        <item>@color/blue_grey_900</item>
+        <item>@color/brown_900</item>
+    </array>
+
+    <array name="trackSelectedColors">
+        <item>@color/selected_track</item>
+        <item>@color/lime_700</item>
+        <item>@color/deep_orange_700</item>
+        <item>@color/pink_700</item>
+        <item>@color/red_700</item>
+        <item>@color/teal_700</item>
+        <item>@color/light_green_700</item>
+        <item>@color/green_700</item>
+        <item>@color/cyan_700</item>
+        <item>@color/light_blue_700</item>
+        <item>@color/blue_700</item>
+        <item>@color/indigo_700</item>
+        <item>@color/deep_purple_700</item>
+        <item>@color/purple_700</item>
+        <item>@color/blue_grey_700</item>
+        <item>@color/brown_700</item>
+    </array>
+</resources>

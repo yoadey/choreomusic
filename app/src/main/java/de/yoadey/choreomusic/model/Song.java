@@ -40,6 +40,8 @@ public class Song {
     @NotNull
     private Date lastUsed;
 
+    private boolean fileSupportsTracks;
+
     /**
      * Used to resolve relations
      */
@@ -52,15 +54,16 @@ public class Song {
     @Generated(hash = 1369727947)
     private transient SongDao myDao;
 
-    @Generated(hash = 1763954329)
+    @Generated(hash = 1396130442)
     public Song(Long id, @NotNull String uri, String title, long length, byte[] amplitudes,
-                @NotNull Date lastUsed) {
+            @NotNull Date lastUsed, boolean fileSupportsTracks) {
         this.id = id;
         this.uri = uri;
         this.title = title;
         this.length = length;
         this.amplitudes = amplitudes;
         this.lastUsed = lastUsed;
+        this.fileSupportsTracks = fileSupportsTracks;
     }
 
     @Generated(hash = 87031450)
@@ -117,6 +120,14 @@ public class Song {
 
     public void setAmplitudes(byte[] amplitudes) {
         this.amplitudes = amplitudes;
+    }
+
+    public boolean getFileSupportsTracks() {
+        return fileSupportsTracks;
+    }
+    
+    public void setFileSupportsTracks(boolean fileSupportsTracks) {
+        this.fileSupportsTracks = fileSupportsTracks;
     }
 
     /**

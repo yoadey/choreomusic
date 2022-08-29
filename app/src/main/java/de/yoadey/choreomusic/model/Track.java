@@ -24,17 +24,22 @@ public class Track implements Comparable<Track> {
     @NotNull
     private String label;
 
+    @NotNull
+    private int color = 0;
+
     public Track(long position, String label) {
         this.position = position;
         this.label = label;
     }
 
-    @Generated(hash = 2121863005)
-    public Track(Long id, long fileId, long position, @NotNull String label) {
+    @Generated(hash = 666336121)
+    public Track(Long id, long fileId, long position, @NotNull String label,
+            int color) {
         this.id = id;
         this.fileId = fileId;
         this.position = position;
         this.label = label;
+        this.color = color;
     }
 
     @Generated(hash = 1672506944)
@@ -71,6 +76,14 @@ public class Track implements Comparable<Track> {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 
     @Override

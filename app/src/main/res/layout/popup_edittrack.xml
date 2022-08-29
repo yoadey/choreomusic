@@ -16,16 +16,28 @@
             android:layout_width="match_parent"
             android:layout_height="10dp" />
 
-        <EditText
-            android:id="@+id/edittrackTextfield"
-            android:layout_width="300dp"
-            android:layout_height="wrap_content"
-            android:ems="15"
-            android:inputType="textPersonName"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
-            android:importantForAutofill="no"
-            tools:ignore="LabelFor" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:id="@+id/edittrackTextfield"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="15"
+                android:importantForAutofill="no"
+                android:inputType="textPersonName"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                tools:ignore="LabelFor" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/edittrackColor"
+                style="@style/ColorButton"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="0" />
+        </LinearLayout>
 
         <Space
             android:layout_width="match_parent"
@@ -41,13 +53,13 @@
                 android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                app:wave_background_color="@color/lightyellow"
+                app:wave_background_color="@color/primary"
                 app:wave_corner_radius="0dp"
                 app:wave_gap="0dp"
                 app:wave_gravity="center"
-                app:wave_min_height="5dp"
+                app:wave_min_height="2dp"
                 app:wave_progress="50"
-                app:wave_progress_color="@color/orange_main"
+                app:wave_progress_color="@color/secondary"
                 app:wave_width="1px" />
 
             <com.google.android.material.button.MaterialButton
@@ -66,6 +78,11 @@
                 android:layout_height="match_parent"
                 android:text="@string/edittrack_note_end_time" />
         </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="10dp" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

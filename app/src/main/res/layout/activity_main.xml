@@ -26,11 +26,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/main_area"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1">
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/main_area"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:contentDescription="@string/main_area_description" />
+
+            <TextView
+                android:id="@+id/hintsView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|bottom"
+                android:backgroundTint="@android:color/transparent"
+                android:text=""
+                android:textAlignment="center" />
+        </FrameLayout>
 
         <!-- Target view below -->
 
@@ -42,20 +58,7 @@
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-                <!--<space.siy.waveformview.WaveFormView
-                android:id="@+id/waveFormView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:blockColor="@color/white"
-                app:blockColorPlayed="@color/white"
-                app:showTimeText="true"
-                app:textColor="@color/white"
-                app:textBgColor="@color/black"
-                app:blockWidth="10"
-                app:topBlockScale="1"
-                app:bottomBlockScale="0.5"
-                app:peakMode="peakmode_average"
-                app:secPerBlock="0.1" /> -->
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="65dp"
@@ -68,30 +71,100 @@
                         android:layout_weight="1" />
 
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/loop"
+                    <FrameLayout
                         style="@style/MainButton"
-                        app:icon="@drawable/baseline_more_time_24" />
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="0dp"
+                        android:contentDescription="@string/loop_description"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/loop"
+                            style="@style/MainButton"
+                            android:layout_gravity="center|top"
+                            android:contentDescription="@string/loop_description"
+                            app:icon="@drawable/baseline_more_time_24" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="65dp"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/loopTextPre"
+                                android:layout_width="47dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0"
+                                android:gravity="right|bottom"
+                                android:text="" />
+
+                            <Space
+                                android:layout_width="6dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/loopTextPost"
+                                android:layout_width="47dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="0"
+                                android:gravity="left|bottom"
+                                android:text="" />
+                        </LinearLayout>
+                    </FrameLayout>
 
                     <Space
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/addMark"
+                    <FrameLayout
                         style="@style/MainButton"
-                        app:icon="@drawable/baseline_playlist_add_24" />
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="0dp"
+                        android:contentDescription="@string/add_track_description"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/add_track"
+                            style="@style/MainButton"
+                            android:layout_gravity="center|top"
+                            android:contentDescription="@string/add_track_description"
+                            app:icon="@drawable/baseline_playlist_add_24" />
+                    </FrameLayout>
 
                     <Space
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/speed"
+                    <FrameLayout
                         style="@style/MainButton"
-                        app:icon="@drawable/baseline_speed_24" />
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="0dp"
+                        android:contentDescription="@string/speed_description"
+                        android:orientation="vertical"
+                        android:padding="0dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/speed"
+                            style="@style/MainButton"
+                            android:layout_gravity="center|top"
+                            app:icon="@drawable/baseline_speed_24" />
+
+                        <TextView
+                            android:id="@+id/speedText"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center|bottom"
+                            android:text="" />
+                    </FrameLayout>
 
                     <Space
                         android:layout_width="wrap_content"
@@ -124,13 +197,14 @@
                             android:id="@+id/waveformSeekBar"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            app:wave_background_color="@color/lightyellow"
+                            app:wave_background_color="@color/primary"
                             app:wave_corner_radius="0dp"
                             app:wave_gap="0dp"
                             app:wave_gravity="center"
-                            app:wave_min_height="5dp"
-                            app:wave_progress="33"
-                            app:wave_progress_color="@color/orange_main"
+                            app:wave_min_height="2dp"
+                            app:wave_progress="0"
+                            app:wave_progress_color="@color/secondary"
+                            app:wave_visible_progress="120000"
                             app:wave_width="1px" />
 
                         <TextView
@@ -138,7 +212,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:text=""/>
+                            android:text="" />
                     </FrameLayout>
 
                     <Space
@@ -177,6 +251,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/previous"
                         style="@style/MainButton"
+                        android:contentDescription="@string/previous_description"
                         app:icon="@drawable/baseline_skip_previous_24" />
 
                     <Space
@@ -187,6 +262,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/stop"
                         style="@style/MainButton"
+                        android:contentDescription="@string/stop_description"
                         app:icon="@drawable/baseline_stop_24" />
 
                     <Space
@@ -196,7 +272,8 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/playpause"
-                        style="@style/PlayButton" />
+                        style="@style/PlayButton"
+                        android:contentDescription="@string/playpause_description" />
 
                     <Space
                         android:layout_width="wrap_content"
@@ -206,6 +283,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/next"
                         style="@style/MainButton"
+                        android:contentDescription="@string/next_description"
                         app:icon="@drawable/baseline_skip_next_24" />
 
                     <Space

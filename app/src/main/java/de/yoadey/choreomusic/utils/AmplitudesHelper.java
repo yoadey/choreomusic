@@ -27,23 +27,21 @@ public class AmplitudesHelper {
     private static final int SAMPLES_PER_FRAME = 1024;
 
     public static int[] extractAmplitudes(Context context, File localFile) {
-        int[][] sample = new int[1][];
+        int[] sample;
         Amplituda amplituda = new Amplituda(context);
         try {
-            amplituda.fromPath(localFile.getPath())
-                    .amplitudesAsList(cb -> {
-                        sample[0] = cb.stream().mapToInt(i -> i).toArray();
-                    });
+            sample = amplituda.processAudio(localFile.getPath())
+                    .get().amplitudesAsList().stream().mapToInt(i -> i).toArray();
         } catch (Exception e) {
             Log.w("AmplitudesHelper", "Could not extract waveform data from default method, fallback to other method");
             try {
-                sample[0] = extractAmplitudes(localFile);
+                sample = extractAmplitudes(localFile);
             } catch (IOException e2) {
-                sample[0] = new int[4096];
-                Arrays.fill(sample[0], 1);
+                sample = new int[4096];
+                Arrays.fill(sample, 1);
             }
         }
-        return sample[0];
+        return sample;
     }
 
     private static int[] extractAmplitudes(File inputFile)
