@@ -101,7 +101,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
      */
     public Observable<Long> playbackProgressObservable = looper != null ?
             Observable.interval(BACKGROUND_THREAD_DELAY, TimeUnit.MILLISECONDS, AndroidSchedulers.from(looper))
-                    .map(t -> player != null ? player.getCurrentPosition() : 0)
+                    .map(t -> player != null ? getCurrentPosition() : 0)
                     .distinctUntilChanged() : null;
     private Handler exoHandler;
     private MediaSessionCompat mediaSession;
@@ -405,9 +405,12 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     public void seekTo(long progress) {
-        exoHandler.post(() -> player.seekTo(progress));
-        // Use method with explicit progress set, as the player will update somewhere later
-        checkTrack(progress);
+        exoHandler.post(() -> {
+            player.seekTo(progress);
+            // Must be called after seekTo has been finished, as many sub calls rely on
+            // playbackControl.getCurrentPosition()
+            checkTrack();
+        });
     }
 
     public long getCurrentPosition() {
@@ -502,7 +505,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     public void previousTrack() {
-        long position = player.getCurrentPosition();
+        long position = getCurrentPosition();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean preTimeSwitchTrack = prefs.getBoolean(Constants.SP_KEY_SWITCH_TRACK, true);
         if (preTimeSwitchTrack) {
@@ -517,7 +520,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
     }
 
     public void nextTrack() {
-        long position = player.getCurrentPosition();
+        long position = getCurrentPosition();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean preTimeSwitchTrack = prefs.getBoolean("preTimeSwitchTrack", true);
         if (preTimeSwitchTrack) {
@@ -564,7 +567,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     // Restart handler
                     if (player.isPlaying()) {
                         // If the loop cycle should end before normal delay, then update it earlier
-                        long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - player.getCurrentPosition());
+                        long delay = Math.min(BACKGROUND_THREAD_DELAY, getLoopEndPosition() - getCurrentPosition());
                         delay = Math.max(0, delay);
                         handler.postDelayed(this, delay);
                     } else {
@@ -594,7 +597,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
         // Update loop
         if (isLoopActive()) {
             long loopStart = getLoopStartPosition();
-            if (player.getCurrentPosition() < loopStart - 500 || player.getCurrentPosition() >= getLoopEndPosition()) {
+            if (getCurrentPosition() < loopStart - 500 || getCurrentPosition() >= getLoopEndPosition()) {
                 player.seekTo(loopStart);
             }
         }
@@ -610,16 +613,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             // handle nevertheless
             return;
         }
-        checkTrack(player.getCurrentPosition());
-    }
-
-    /**
-     * Check, whether the current track is still the current track or whether it should be changed
-     * to another one.
-     *
-     * @param position the updated position
-     */
-    private void checkTrack(long position) {
+        long position = getCurrentPosition();
         if (currentTrack == null || nextTrack == null ||
                 position < currentTrack.getPosition() ||
                 position >= nextTrack.getPosition()) {
@@ -635,7 +629,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
             return;
         }
         if (isLoopActive()) {
-            long currentPosition = player.getCurrentPosition();
+            long currentPosition = getCurrentPosition();
             long position = loopStart.getPosition() - currentPosition;
             position = position > 0 ? position : currentPosition - loopEnd.getPosition();
             float leadInOutVolume = currentPosition < loopStart.getPosition() ? leadInVolume : leadOutVolume;

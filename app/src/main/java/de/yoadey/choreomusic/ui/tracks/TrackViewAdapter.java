@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
@@ -26,14 +25,12 @@ import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.dhaval2404.colorpicker.util.ColorUtil;
 import com.google.android.material.button.MaterialButton;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -330,7 +327,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
             public void run() {
                 try {
                     int[] color = new int[]{track.getColor()};
-                    color[0] = ColorUtils.blendARGB(getBrighterColor(color[0]), color[0], counter[0]*1.0f/BLINK_COUNT);
+                    color[0] = ColorUtils.blendARGB(getBrighterColor(color[0]), color[0], counter[0] * 1.0f / BLINK_COUNT);
 
                     // Restart handler
                     if (id == blinkId && counter[0]++ < BLINK_COUNT) {
@@ -365,7 +362,13 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
                 Optional.ofNullable(trackToLayout.get(track))
                         .map(layout -> (ProgressBar) layout.findViewById(R.id.trackProgressBar))
                         // Don't show progress if it isn't the current track
-                        .ifPresent(pb -> pb.setProgress(progress >= pb.getMax() ? 0 : progress)));
+                        .ifPresent(pb -> {
+                            if (progress < pb.getMax()) {
+                                pb.setProgress(progress, true);
+                            } else {
+                                pb.setProgress(0, false);
+                            }
+                        }));
     }
 
     public void onDestroy() {
