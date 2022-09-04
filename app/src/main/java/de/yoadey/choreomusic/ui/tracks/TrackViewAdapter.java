@@ -363,7 +363,7 @@ public class TrackViewAdapter extends androidx.recyclerview.widget.RecyclerView.
                         .map(layout -> (ProgressBar) layout.findViewById(R.id.trackProgressBar))
                         // Don't show progress if it isn't the current track
                         .ifPresent(pb -> {
-                            if (progress < pb.getMax()) {
+                            if (progress >= pb.getMin() && progress < pb.getMax()) {
                                 pb.setProgress(progress, true);
                             } else {
                                 pb.setProgress(0, false);

@@ -1,0 +1,6 @@
+- Add possibility to change volume for lead in and lead out time
+- Give the possibility to change the color of tracks
+- Show selected track with fading effect
+- Show leadin and leadout information in main UI
+- Layout fixed to portrait
+- Allow notification to be dismissed when nothing is playing
