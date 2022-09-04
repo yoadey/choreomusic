@@ -1,0 +1,27 @@
+The Choreo Music Helper is an Android app to support everyone,
+who wants to perform to a specific song. In those cases, the
+user(s) normally needs to train very often to one specific
+song or even small part of the track.
+
+Therefore the Choreo Music Helper allows the user to split the
+song into smaller tracks, which can be looped, have some
+lead-in/-out time to prepare for the next iteration and change
+the speed.
+
+For this requirement only a handful of songs should be added to
+the App, so you don't have to search long during a training
+session.
+
+<i>What is this app NOT?</i>
+
+This app is not a full music library to manage hundreds of
+songs. If you want this, search for another app.
+
+<i>Notes</i>
+
+This app is totally free, does not include any adds and does
+not track you in any way. It's also Open source, and the
+source code and further help can be found at
+https://github.com/yoadey/choreomusic. Feel free to open an
+issue there if you miss something or have other feature
+requests.

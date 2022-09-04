@@ -1,0 +1,1 @@
+- Bug: Fortschrittsanzeige der Tracks wurde inkorrekt angezeigt

@@ -14,8 +14,8 @@ android {
         applicationId "de.yoadey.choreomusic"
         minSdkVersion 26
         targetSdkVersion 32
-        versionCode 13
-        versionName "0.13"
+        versionCode 14
+        versionName "0.14"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -69,8 +69,8 @@ dependencies {
         maven { url 'https://jitpack.io' }
     }
     //noinspection AnnotationProcessorOnCompilePath
-    compileOnly 'org.projectlombok:lombok:1.18.16'
-    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     // Waveform library
     implementation 'com.github.massoudss:waveformSeekBar:5.0.1'

@@ -1,0 +1,6 @@
+- Lautstärke kann für die Vor- und Nachbereitungszeit geändert werden
+- Farbe eines Tracks kann geändert werden
+- Der ausgewählte Track blinkt auf, falls Vorlauf eingestellt ist
+- Vorlauf und Nachlauf informationen werden in der Main UI angezeit
+- Layout fixiert auf portrait ansicht
+- Notification kann weggeswipped werden, wenn nichts abgespielt wird
