@@ -36,14 +36,14 @@ public class PlaybackControlTest {
     public void testVolumeFadeIn() {
         checkVolume(5000L, 4000L, 0.2f,
                 10000L, 4000L, 0.7f,
-                4000L,  0.6f);
+                4500L,  0.6f);
     }
 
     @Test
     public void testVolumeFadeOut() {
         checkVolume(5000L, 4000L, 0.2f,
                 10000L, 4000L, 0.7f,
-                11000L,  0.85f);
+                10500L,  0.85f);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class PlaybackControlTest {
     public void testVolumeFadeBetweenEarly() {
         checkVolume(5000L, 4000L, 0.2f,
                 10000L, 4000L, 0.7f,
-                13500L,  0.575f);
+                13750L,  0.575f);
     }
 
     private void checkVolume(long startPosition, long inTime, float inVolume, long endPosition, long outTime, float outVolume, long position, float expectedVolume) {
