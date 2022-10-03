@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
@@ -193,6 +192,7 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     startForeground(PLAYBACK_NOTIFICATION_ID, notification);
                     startLoopingThread();
                 } else {
+                    // Stop the foreground, so the notification can be removed with a swipe
                     stopForeground(false);
                 }
                 fireEvent(l -> l.onIsPlayingChanged(isPlaying));
@@ -222,6 +222,12 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                 .setNotificationListener(new PlayerNotificationManager.NotificationListener() {
                     @Override
                     public void onNotificationPosted(int notificationId, Notification notification, boolean ongoing) {
+                        // Initially, the service must be set as a foreground service, otherwise
+                        // it will be immediately killed. Once the music stopped, it can be set as a
+                        // background service.
+                        if (PlaybackControl.this.notification == null) {
+                            startForeground(PLAYBACK_NOTIFICATION_ID, notification);
+                        }
                         if (PlaybackControl.this.notification != notification) {
                             PlaybackControl.this.notification = notification;
                         }
@@ -287,13 +293,6 @@ public class PlaybackControl extends Service implements Playlist.PlaylistListene
                     return nextTrack != null;
                 }
                 return super.isCommandAvailable(command);
-            }
-
-            @Override
-            public void stop() {
-                playerNotificationManager.setPlayer(null);
-                stopForeground(true);
-                ((MainActivity) getApplicationContext()).finishAndRemoveTask();
             }
         };
         playerNotificationManager.setPlayer(forwardingPlayer);

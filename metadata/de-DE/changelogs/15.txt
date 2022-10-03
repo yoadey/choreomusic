@@ -1,0 +1,1 @@
+- Bug: App stoppte teilweise nach dem Start
