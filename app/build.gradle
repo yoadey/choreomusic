@@ -8,12 +8,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 35
 
     defaultConfig {
         applicationId "de.yoadey.choreomusic"
         minSdkVersion 26
-        targetSdkVersion 32
+        targetSdkVersion 35
         versionCode 15
         versionName "0.15"
 
