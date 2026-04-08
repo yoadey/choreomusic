@@ -1,6 +1,4 @@
 plugins {
-    id 'io.freefair.lombok' version '5.3.0'
-    id 'org.greenrobot.greendao'
     id 'com.android.application'
     id 'com.google.android.gms.oss-licenses-plugin'
     id 'kotlin-android'
@@ -39,6 +37,10 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
     testOptions {
         unitTests.returnDefaultValues = true;
     }
@@ -53,28 +55,15 @@ release {
     }
 }
 
-sourceSets {
-    main {
-        java.srcDirs = ['src/main/java', 'build/generated/source/greendao']
-    }
-}
-
-greendao {
-    schemaVersion 4
-}
-
 dependencies {
     repositories {
         mavenCentral()
-        maven { url 'https://jitpack.io' }
     }
     //noinspection AnnotationProcessorOnCompilePath
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     // Waveform library
-    implementation 'com.github.massoudss:waveformSeekBar:5.0.1'
-    implementation 'com.github.lincollincol:Amplituda:2.1.0'
 
     // Media libraries
     implementation 'com.google.android.exoplayer:exoplayer:2.18.1'
@@ -85,8 +74,6 @@ dependencies {
     // Special activities
     implementation 'androidx.preference:preference-ktx:1.2.0'
     implementation 'io.github.medyo:android-about-page:2.0.0'
-    implementation 'com.github.AppIntro:AppIntro:6.1.0'
-    implementation 'com.github.Dhaval2404:ColorPicker:2.3'
 
     // DB layer
     implementation 'org.greenrobot:greendao:3.3.0'
@@ -98,7 +85,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.7.10'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.25'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
     implementation 'io.reactivex.rxjava3:rxjava:3.1.1'
 

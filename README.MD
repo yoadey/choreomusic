@@ -1,5 +1,11 @@
 # Choreo Music Helper
 
+
+## Build prerequisites
+
+- Use **JDK 17** for Gradle builds (`.java-version` is pinned to `17.0.2`).
+- Example: `mise x java@17 -- ./gradlew assembleDebug`
+
 ## Description
 
 *What is this app NOT?*
