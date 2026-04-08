@@ -49,3 +49,34 @@ Currently install is only possible via a self made build, which then can be inst
 As this is a free project which I build mostly to use for myself, I'm happy about anybody who wants to use it. However, if you like the App and would like to give something back, here is a link: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/yoadey)
 
 Independently from any donations I'll try to update and improve the App whenever I have some time and the best way to support me in it is to give me feedback. So open an [issue](https://github.com/yoadey/choreomusic/issues/new) whenever you miss something or something is not working on your device.
+
+## Build setup (required for full compilation)
+
+To compile the project locally (e.g. `./gradlew assembleDebug`) you need:
+
+* **JDK 17** (required by the current Gradle/Android Gradle Plugin setup)
+* **Android SDK Platform 35**
+* **Android Build-Tools 35.x**
+* **A configured SDK path** (`local.properties` or `ANDROID_HOME`/`ANDROID_SDK_ROOT`)
+
+### Example setup
+
+1. Select Java 17 for this shell session:
+   ```bash
+   export JAVA_HOME="/path/to/jdk-17"
+   export PATH="$JAVA_HOME/bin:$PATH"
+   ```
+2. Install required Android SDK packages:
+   ```bash
+   sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+   ```
+3. Configure SDK path in `local.properties` (project root):
+   ```properties
+   sdk.dir=/absolute/path/to/Android/Sdk
+   ```
+4. Build:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+
+> Note: If Java 21+ is active, Gradle 7.4 in this project can fail with `Unsupported class file major version` during build script evaluation.
