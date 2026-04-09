@@ -7,7 +7,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import de.yoadey.choreomusic.testutil.TestHostActivity;
 
@@ -15,17 +16,26 @@ import de.yoadey.choreomusic.testutil.TestHostActivity;
 public class WaveformSeekBarInstrumentedTest {
 
     @Test
-    public void touchUpdatesProgress() {
-        AtomicReference<Float> progress = new AtomicReference<>(0f);
+    public void touchAndDragProduceDeterministicProgress() {
+        List<Float> progressEvents = new ArrayList<>();
+
         try (ActivityScenario<TestHostActivity> scenario = ActivityScenario.launch(TestHostActivity.class)) {
             scenario.onActivity(activity -> {
                 WaveformSeekBar seekBar = activity.getWaveformSeekBar();
+                seekBar.layout(0, 0, 1000, 100);
                 seekBar.setMaxProgress(100);
                 seekBar.setSample(new int[]{10, 30, 80, 50, 20});
-                seekBar.setOnProgressChanged((bar, p, fromUser) -> progress.set(p));
-                seekBar.dispatchTouchEvent(android.view.MotionEvent.obtain(0,0,android.view.MotionEvent.ACTION_DOWN,seekBar.getWidth() * 0.75f,seekBar.getHeight()/2f,0));
+                seekBar.setOnProgressChanged((bar, p, fromUser) -> progressEvents.add(p));
+
+                seekBar.dispatchTouchEvent(android.view.MotionEvent.obtain(0, 0,
+                        android.view.MotionEvent.ACTION_DOWN, 250, 50, 0));
+                seekBar.dispatchTouchEvent(android.view.MotionEvent.obtain(0, 16,
+                        android.view.MotionEvent.ACTION_MOVE, 750, 50, 0));
             });
         }
-        Assert.assertTrue(progress.get() > 60f);
+
+        Assert.assertTrue(progressEvents.size() >= 2);
+        Assert.assertEquals(25f, progressEvents.get(0), 2f);
+        Assert.assertEquals(75f, progressEvents.get(1), 2f);
     }
 }

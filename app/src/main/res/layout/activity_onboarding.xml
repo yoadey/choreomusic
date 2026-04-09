@@ -33,6 +33,13 @@
             android:text="@android:string/cancel" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/onboardingSkip"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/skip" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/onboardingNext"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"

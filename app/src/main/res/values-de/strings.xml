@@ -69,4 +69,5 @@
     <string name="add_lead_in_time">Füge %ds Vorlaufzeit hinzu</string>
     <string name="notification_nothing_loaded">Nichts geladen</string>
     <string name="done">Fertig</string>
+    <string name="skip">Überspringen</string>
 </resources>

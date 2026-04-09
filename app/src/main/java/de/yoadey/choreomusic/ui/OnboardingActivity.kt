@@ -29,6 +29,7 @@ class OnboardingActivity : AppCompatActivity() {
         pager.adapter = OnboardingAdapter(pages)
 
         val back = findViewById<MaterialButton>(R.id.onboardingBack)
+        val skip = findViewById<MaterialButton>(R.id.onboardingSkip)
         val next = findViewById<MaterialButton>(R.id.onboardingNext)
         val done = findViewById<MaterialButton>(R.id.onboardingDone)
 
@@ -38,13 +39,17 @@ class OnboardingActivity : AppCompatActivity() {
         next.setOnClickListener {
             pager.currentItem = (pager.currentItem + 1).coerceAtMost(pages.lastIndex)
         }
+        skip.setOnClickListener { finish() }
         done.setOnClickListener { finish() }
+
+        pager.currentItem = savedInstanceState?.getInt(KEY_PAGE, 0) ?: 0
 
         pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 back.visibility = if (position == 0) View.INVISIBLE else View.VISIBLE
                 next.visibility = if (position == pages.lastIndex) View.INVISIBLE else View.VISIBLE
                 done.visibility = if (position == pages.lastIndex) View.VISIBLE else View.INVISIBLE
+                skip.visibility = if (position == pages.lastIndex) View.INVISIBLE else View.VISIBLE
             }
         })
     }
@@ -72,8 +77,16 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_PAGE, findViewById<ViewPager2>(R.id.onboardingPager).currentItem)
+    }
+
     companion object {
+        private const val KEY_PAGE = "onboarding_page"
+
         @JvmField
         var COMPLETED_ONBOARDING_PREF_NAME = "onboardingPreference"
     }
 }
+

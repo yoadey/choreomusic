@@ -99,3 +99,7 @@ To compile the project locally (e.g. `./gradlew assembleDebug`) you need:
 ```
 
 GitHub Actions executes the same verification steps in `.github/workflows/build.yaml` with **Temurin JDK 17**.
+
+## UI Acceptance Criteria
+
+See `docs/acceptance/ui-components.md` for the onboarding/color-picker/waveform acceptance criteria used for testing.
