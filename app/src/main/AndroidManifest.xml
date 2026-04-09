@@ -13,8 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ChoreoMusicHelper"
-        android:extractNativeLibs="false"
-        android:fullBackupContent="@xml/backup_descriptor">
+        android:fullBackupContent="@xml/backup_descriptor"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <service android:name=".service.PlaybackControl"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback">
@@ -25,10 +25,8 @@
 
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
             android:exported="true"
-            android:theme="@style/Theme.ChoreoMusicHelper"
-            tools:ignore="LockedOrientationActivity">
+            android:theme="@style/Theme.ChoreoMusicHelper">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
