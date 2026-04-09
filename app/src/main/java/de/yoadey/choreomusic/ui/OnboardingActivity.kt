@@ -1,50 +1,75 @@
 package de.yoadey.choreomusic.ui
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import com.github.appintro.AppIntro
-import com.github.appintro.AppIntroFragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.button.MaterialButton
 import de.yoadey.choreomusic.R
 
-class OnboardingActivity : AppIntro() {
-    public override fun onCreate(savedInstanceState: Bundle?) {
+class OnboardingActivity : AppCompatActivity() {
+
+    private val pages = listOf(
+        OnboardingPage(R.string.intro_split_title, R.string.intro_split, R.drawable.baseline_playlist_add_24),
+        OnboardingPage(R.string.intro_loop_title, R.string.intro_loop, R.drawable.onboarding_loop),
+        OnboardingPage(R.string.intro_edit_title, R.string.intro_edit, R.drawable.onboarding_edit),
+        OnboardingPage(R.string.intro_preptime_title, R.string.intro_preptime, R.drawable.onboarding_time),
+    )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Make sure you don't call setContentView!
+        setContentView(R.layout.activity_onboarding)
 
-        addSlide(AppIntroFragment.newInstance(
-                title = getString(R.string.intro_split_title),
-                imageDrawable = R.drawable.baseline_playlist_add_24,
-                description = getString(R.string.intro_split),
-                backgroundDrawable = R.drawable.intro_background
-        ))
-        addSlide(AppIntroFragment.newInstance(
-                title = getString(R.string.intro_loop_title),
-                imageDrawable = R.drawable.onboarding_loop,
-                description = getString(R.string.intro_loop),
-                backgroundDrawable = R.drawable.intro_background
-        ))
-        addSlide(AppIntroFragment.newInstance(
-                title = getString(R.string.intro_edit_title),
-                imageDrawable = R.drawable.onboarding_edit,
-                description = getString(R.string.intro_edit),
-                backgroundDrawable = R.drawable.intro_background
-        ))
-        addSlide(AppIntroFragment.newInstance(
-                title = getString(R.string.intro_preptime_title),
-                imageDrawable = R.drawable.onboarding_time,
-                description = getString(R.string.intro_preptime),
-                backgroundDrawable = R.drawable.intro_background
-        ))
+        val pager = findViewById<ViewPager2>(R.id.onboardingPager)
+        pager.adapter = OnboardingAdapter(pages)
+
+        val back = findViewById<MaterialButton>(R.id.onboardingBack)
+        val next = findViewById<MaterialButton>(R.id.onboardingNext)
+        val done = findViewById<MaterialButton>(R.id.onboardingDone)
+
+        back.setOnClickListener {
+            pager.currentItem = (pager.currentItem - 1).coerceAtLeast(0)
+        }
+        next.setOnClickListener {
+            pager.currentItem = (pager.currentItem + 1).coerceAtMost(pages.lastIndex)
+        }
+        done.setOnClickListener { finish() }
+
+        pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                back.visibility = if (position == 0) View.INVISIBLE else View.VISIBLE
+                next.visibility = if (position == pages.lastIndex) View.INVISIBLE else View.VISIBLE
+                done.visibility = if (position == pages.lastIndex) View.VISIBLE else View.INVISIBLE
+            }
+        })
     }
 
-    public override fun onSkipPressed(currentFragment: Fragment?) {
-        super.onSkipPressed(currentFragment)
-        finish()
-    }
+    data class OnboardingPage(val titleRes: Int, val descriptionRes: Int, val imageRes: Int)
 
-    public override fun onDonePressed(currentFragment: Fragment?) {
-        super.onDonePressed(currentFragment)
-        finish()
+    class OnboardingAdapter(private val pages: List<OnboardingPage>) : RecyclerView.Adapter<OnboardingAdapter.PageViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_onboarding_page, parent, false)
+            return PageViewHolder(view)
+        }
+
+        override fun getItemCount(): Int = pages.size
+
+        override fun onBindViewHolder(holder: PageViewHolder, position: Int) {
+            holder.bind(pages[position])
+        }
+
+        class PageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            fun bind(page: OnboardingPage) {
+                itemView.findViewById<TextView>(R.id.onboardingPageTitle).setText(page.titleRes)
+                itemView.findViewById<TextView>(R.id.onboardingPageDescription).setText(page.descriptionRes)
+                itemView.findViewById<ImageView>(R.id.onboardingPageImage).setImageResource(page.imageRes)
+            }
+        }
     }
 
     companion object {

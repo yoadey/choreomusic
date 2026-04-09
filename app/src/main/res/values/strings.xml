@@ -67,4 +67,5 @@
     <string name="edit_track_color_dialog">Track color</string>
     <string name="add_lead_in_time">Adding %ds lead in time</string>
     <string name="notification_nothing_loaded">Nothing loaded</string>
+    <string name="done">Done</string>
 </resources>
