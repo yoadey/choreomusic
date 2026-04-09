@@ -34,12 +34,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     testOptions {
         unitTests.returnDefaultValues = true;
@@ -76,7 +76,8 @@ dependencies {
     implementation 'io.github.medyo:android-about-page:2.0.0'
 
     // DB layer
-    implementation 'org.greenrobot:greendao:3.3.0'
+    implementation 'androidx.room:room-runtime:2.6.1'
+    annotationProcessor 'androidx.room:room-compiler:2.6.1'
 
     // Android dependencies
     implementation 'com.google.android.material:material:1.6.1'

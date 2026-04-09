@@ -60,7 +60,7 @@ Independently from any donations I'll try to update and improve the App whenever
 
 To compile the project locally (e.g. `./gradlew assembleDebug`) you need:
 
-* **JDK 17** (required by the current Gradle/Android Gradle Plugin setup)
+* **JDK 17** (required by the current Gradle/Android Gradle Plugin setup; see `.java-version`)
 * **Android SDK Platform 35**
 * **Android Build-Tools 35.x**
 * **A configured SDK path** (`local.properties` or `ANDROID_HOME`/`ANDROID_SDK_ROOT`)
@@ -85,4 +85,15 @@ To compile the project locally (e.g. `./gradlew assembleDebug`) you need:
    ./gradlew assembleDebug
    ```
 
-> Note: If Java 21+ is active, Gradle 7.4 in this project can fail with `Unsupported class file major version` during build script evaluation.
+### Target toolchain levels
+
+- Java source/target compatibility: **17**
+- Kotlin JVM target: **17**
+
+### CI/local verification commands
+
+```bash
+./gradlew assembleDebug
+./gradlew testDebugUnitTest
+./gradlew lintDebug
+```

@@ -3,90 +3,90 @@ package de.yoadey.choreomusic.utils;
 import android.content.Context;
 import android.net.Uri;
 
-import org.greenrobot.greendao.database.Database;
+import androidx.room.Room;
 
 import java.util.List;
 
-import de.yoadey.choreomusic.model.DaoMaster;
-import de.yoadey.choreomusic.model.DaoSession;
+import de.yoadey.choreomusic.db.AppDatabase;
+import de.yoadey.choreomusic.db.RoomSongDao;
+import de.yoadey.choreomusic.db.RoomTrackDao;
 import de.yoadey.choreomusic.model.Playlist;
 import de.yoadey.choreomusic.model.Song;
-import de.yoadey.choreomusic.model.SongDao;
 import de.yoadey.choreomusic.model.Track;
-import de.yoadey.choreomusic.model.TrackDao;
 import de.yoadey.choreomusic.service.PlaybackControl;
 import lombok.Getter;
 import lombok.Setter;
 
 public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlist.PlaylistListener {
 
-    private final DaoSession daoSession;
+    private final RoomSongDao songDao;
+    private final RoomTrackDao trackDao;
 
     @Setter
     @Getter
     private long currentFile;
 
     public DatabaseHelper(Context context) {
-        DBOpenHelper helper = new DBOpenHelper(context, "tracks-db");
-        Database db = helper.getWritableDb();
-        daoSession = new DaoMaster(db).newSession();
+        AppDatabase db = Room.databaseBuilder(context, AppDatabase.class, "tracks-db")
+                .addMigrations(
+                        AppDatabase.MIGRATION_1_2,
+                        AppDatabase.MIGRATION_2_3,
+                        AppDatabase.MIGRATION_3_4
+                )
+                .allowMainThreadQueries()
+                .build();
+        songDao = db.songDao();
+        trackDao = db.trackDao();
     }
 
     public void saveTrack(Track track) {
         if (track.getFileId() == 0) {
             track.setFileId(currentFile);
         }
-
-        TrackDao trackDao = daoSession.getTrackDao();
-        trackDao.save(track);
+        long id = trackDao.insert(track);
+        if (track.getId() == null || track.getId() <= 0) {
+            track.setId(id);
+        }
     }
 
-
     public Track getTrack(int position) {
-        TrackDao trackDao = daoSession.getTrackDao();
-        return trackDao.queryBuilder() //
-                .where(TrackDao.Properties.Position.eq(position), TrackDao.Properties.FileId.eq(currentFile)) //
-                .unique();
+        return trackDao.getTrack(position, currentFile);
     }
 
     public List<Track> getAllTracks() {
-        TrackDao trackDao = daoSession.getTrackDao();
-        return trackDao.queryBuilder() //
-                .where(TrackDao.Properties.FileId.eq(currentFile)) //
-                .list();
+        return trackDao.getTracksForSong(currentFile);
     }
 
     public int getTracksCount() {
-        TrackDao trackDao = daoSession.getTrackDao();
-        return (int) trackDao.queryBuilder() //
-                .where(TrackDao.Properties.FileId.eq(currentFile)) //
-                .count();
+        return trackDao.getTracksCount(currentFile);
     }
 
     public void deleteTrack(Track track) {
         if (track.getFileId() != currentFile) {
-            // Only delete tracks, if they match the current file id!
             return;
         }
-        TrackDao trackDao = daoSession.getTrackDao();
-        trackDao.delete(track);
+        if (track.getId() != null) {
+            trackDao.deleteById(track.getId());
+        }
     }
 
     public Song findSongByUri(Uri file) {
-        SongDao songDao = daoSession.getSongDao();
-        return songDao.queryBuilder() //
-                .where(SongDao.Properties.Uri.eq(file.toString())) //
-                .unique();
+        Song song = songDao.findByUri(file.toString());
+        attachTracks(song);
+        return song;
     }
 
     public void saveSong(Song song) {
-        SongDao songDao = daoSession.getSongDao();
-        songDao.save(song);
-        TrackDao trackDao = daoSession.getTrackDao();
-        song.getTracks().forEach(track -> {
-            track.setFileId(song.getId());
-            trackDao.save(track);
-        });
+        long id = songDao.insert(song);
+        if (song.getId() == null || song.getId() <= 0) {
+            song.setId(id);
+        }
+        if (song.getTracks() != null) {
+            for (Track track : song.getTracks()) {
+                track.setFileId(song.getId());
+                saveTrack(track);
+            }
+        }
     }
 
     public void saveTracks(List<Track> tracks) {
@@ -94,8 +94,9 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
     }
 
     public List<Song> getAllSongs() {
-        SongDao songDao = daoSession.getSongDao();
-        return songDao.queryBuilder().list();
+        List<Song> songs = songDao.getAllSongs();
+        songs.forEach(this::attachTracks);
+        return songs;
     }
 
     @Override
@@ -114,10 +115,11 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
     }
 
     public void deleteSong(Song song) {
-        TrackDao trackDao = daoSession.getTrackDao();
-        song.getTracks().forEach(trackDao::delete);
-        SongDao songDao = daoSession.getSongDao();
-        songDao.delete(song);
+        if (song == null || song.getId() == null) {
+            return;
+        }
+        trackDao.deleteBySongId(song.getId());
+        songDao.deleteById(song.getId());
     }
 
     public void deleteSongByUri(Uri file) {
@@ -127,23 +129,9 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
         }
     }
 
-    private static class DBOpenHelper extends DaoMaster.OpenHelper {
-
-        public DBOpenHelper(Context context, String name) {
-            super(context, name);
-        }
-
-        @Override
-        public void onUpgrade(Database db, int oldVersion, int newVersion) {
-            if (oldVersion <= 1 && newVersion >= 2) {
-                db.execSQL("ALTER TABLE '" + SongDao.TABLENAME + "' ADD '" + SongDao.Properties.Amplitudes.columnName + "' BLOB");
-            }
-            if (oldVersion <= 2 && newVersion >= 3) {
-                db.execSQL("ALTER TABLE '" + SongDao.TABLENAME + "' ADD '" + SongDao.Properties.FileSupportsTracks.columnName + "' INTEGER DEFAULT 1 NOT NULL ");
-            }
-            if (oldVersion <= 3 && newVersion >= 4) {
-                db.execSQL("ALTER TABLE '" + TrackDao.TABLENAME + "' ADD '" + TrackDao.Properties.Color.columnName + "' INTEGER DEFAULT 0 NOT NULL ");
-            }
+    private void attachTracks(Song song) {
+        if (song != null && song.getId() != null) {
+            song.setTracks(trackDao.getTracksForSong(song.getId()));
         }
     }
 }
