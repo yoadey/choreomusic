@@ -334,9 +334,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackControl.P
         }
         song.setLastUsed(new Date());
         databaseHelper.saveSong(song);
-        if (isNew) {
-            databaseHelper.saveTracks(song.getTracks());
-        }
         return song;
     }
 

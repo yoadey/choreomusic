@@ -77,16 +77,7 @@ public class DatabaseHelper implements PlaybackControl.PlaybackListener, Playlis
     }
 
     public void saveSong(Song song) {
-        long id = songDao.insert(song);
-        if (song.getId() == null || song.getId() <= 0) {
-            song.setId(id);
-        }
-        if (song.getTracks() != null) {
-            for (Track track : song.getTracks()) {
-                track.setFileId(song.getId());
-                saveTrack(track);
-            }
-        }
+        songDao.replaceSongWithTracks(song, song.getTracks());
     }
 
     public void saveTracks(List<Track> tracks) {
