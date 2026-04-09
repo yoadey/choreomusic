@@ -97,3 +97,5 @@ To compile the project locally (e.g. `./gradlew assembleDebug`) you need:
 ./gradlew testDebugUnitTest
 ./gradlew lintDebug
 ```
+
+GitHub Actions executes the same verification steps in `.github/workflows/build.yaml` with **Temurin JDK 17**.
