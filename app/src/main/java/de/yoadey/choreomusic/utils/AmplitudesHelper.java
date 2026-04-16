@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import linc.com.amplituda.Amplituda;
 
 /**
  * Helper class to extract the amplitudes of a song if the fast way using Amplituda binary
@@ -28,18 +27,12 @@ public class AmplitudesHelper {
 
     public static int[] extractAmplitudes(Context context, File localFile) {
         int[] sample;
-        Amplituda amplituda = new Amplituda(context);
         try {
-            sample = amplituda.processAudio(localFile.getPath())
-                    .get().amplitudesAsList().stream().mapToInt(i -> i).toArray();
+            sample = extractAmplitudes(localFile);
         } catch (Exception e) {
-            Log.w("AmplitudesHelper", "Could not extract waveform data from default method, fallback to other method");
-            try {
-                sample = extractAmplitudes(localFile);
-            } catch (IOException e2) {
-                sample = new int[4096];
-                Arrays.fill(sample, 1);
-            }
+            Log.w("AmplitudesHelper", "Could not extract waveform data, fallback to flat sample", e);
+            sample = new int[4096];
+            Arrays.fill(sample, 1);
         }
         return sample;
     }

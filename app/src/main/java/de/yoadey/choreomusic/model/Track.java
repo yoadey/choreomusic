@@ -1,40 +1,43 @@
 package de.yoadey.choreomusic.model;
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Index;
-import org.greenrobot.greendao.annotation.NotNull;
+import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
 import lombok.Data;
 
-@Entity(indexes = { @Index("position") })
+@Entity(tableName = "TRACK", indices = {@Index(value = "POSITION")})
 @Data
 public class Track implements Comparable<Track> {
 
-    @Id
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
     private Long id;
 
-    @NotNull
+    @ColumnInfo(name = "FILE_ID")
     private long fileId;
 
-    @NotNull
+    @ColumnInfo(name = "POSITION")
     private long position;
 
-    @NotNull
+    @NonNull
+    @ColumnInfo(name = "LABEL")
     private String label;
 
-    @NotNull
+    @ColumnInfo(name = "COLOR")
     private int color = 0;
 
+    @Ignore
     public Track(long position, String label) {
         this.position = position;
         this.label = label;
     }
 
-    @Generated(hash = 666336121)
-    public Track(Long id, long fileId, long position, @NotNull String label,
-            int color) {
+    @Ignore
+    public Track(Long id, long fileId, long position, @NonNull String label, int color) {
         this.id = id;
         this.fileId = fileId;
         this.position = position;
@@ -42,48 +45,7 @@ public class Track implements Comparable<Track> {
         this.color = color;
     }
 
-    @Generated(hash = 1672506944)
     public Track() {
-    }
-
-    public Long getId() {
-        return this.id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public long getFileId() {
-        return this.fileId;
-    }
-
-    public void setFileId(long fileId) {
-        this.fileId = fileId;
-    }
-
-    public long getPosition() {
-        return this.position;
-    }
-
-    public void setPosition(long position) {
-        this.position = position;
-    }
-
-    public String getLabel() {
-        return this.label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public int getColor() {
-        return color;
-    }
-
-    public void setColor(int color) {
-        this.color = color;
     }
 
     @Override

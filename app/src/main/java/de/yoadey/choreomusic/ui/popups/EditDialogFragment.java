@@ -20,9 +20,10 @@ import com.github.dhaval2404.colorpicker.MaterialColorPickerDialog;
 import com.github.dhaval2404.colorpicker.listener.ColorListener;
 import com.github.dhaval2404.colorpicker.model.ColorShape;
 import com.google.android.material.button.MaterialButton;
-import com.masoudss.lib.WaveformSeekBar;
 
 import org.jetbrains.annotations.NotNull;
+import com.masoudss.lib.WaveformSeekBar;
+
 
 import de.yoadey.choreomusic.MainActivity;
 import de.yoadey.choreomusic.R;
@@ -112,9 +113,6 @@ public class EditDialogFragment extends DialogFragment implements PlaybackContro
                 .setColorListener(new ColorListener() {
                     @Override
                     public void onColorSelected(int newColor, @NotNull String colorHex) {
-                        if (newColor == R.color.background_color) {
-                            newColor = 0; // Transparent
-                        }
                         EditDialogFragment.this.color = newColor;
                         MaterialButton colorButton = rootView.findViewById(R.id.edittrackColor);
                         colorButton.setBackgroundColor(newColor);

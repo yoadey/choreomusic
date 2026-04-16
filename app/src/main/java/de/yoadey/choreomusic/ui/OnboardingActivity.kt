@@ -9,7 +9,6 @@ import de.yoadey.choreomusic.R
 class OnboardingActivity : AppIntro() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Make sure you don't call setContentView!
 
         addSlide(AppIntroFragment.newInstance(
                 title = getString(R.string.intro_split_title),
