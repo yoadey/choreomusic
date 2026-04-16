@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <de.yoadey.choreomusic.ui.layouts.WaveformSeekBar
+            <com.masoudss.lib.WaveformSeekBar
                 android:id="@+id/edittrackWaveformSeekBar"
                 android:layout_weight="1"
                 android:layout_width="wrap_content"

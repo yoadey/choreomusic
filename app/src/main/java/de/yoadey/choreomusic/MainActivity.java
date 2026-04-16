@@ -36,7 +36,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import de.yoadey.choreomusic.ui.layouts.WaveformSeekBar;
+import com.masoudss.lib.WaveformSeekBar;
 
 import java.io.File;
 import java.io.IOException;

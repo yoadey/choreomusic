@@ -16,8 +16,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
+import com.github.dhaval2404.colorpicker.MaterialColorPickerDialog;
+import com.github.dhaval2404.colorpicker.listener.ColorListener;
+import com.github.dhaval2404.colorpicker.model.ColorShape;
 import com.google.android.material.button.MaterialButton;
-import de.yoadey.choreomusic.ui.layouts.WaveformSeekBar;
+
+import org.jetbrains.annotations.NotNull;
+import com.masoudss.lib.WaveformSeekBar;
 
 
 import de.yoadey.choreomusic.MainActivity;
@@ -99,11 +104,21 @@ public class EditDialogFragment extends DialogFragment implements PlaybackContro
 
         int[] colors = getResources().getIntArray(R.array.trackColors);
 
-        ColorPickerHelper.show(requireContext(), colors, color, newColor -> {
-            EditDialogFragment.this.color = newColor;
-            MaterialButton colorButton = rootView.findViewById(R.id.edittrackColor);
-            colorButton.setBackgroundColor(newColor);
-        });
+        new MaterialColorPickerDialog
+                .Builder(getContext())
+                .setTitle(R.string.edit_track_color_dialog)
+                .setColorShape(ColorShape.CIRCLE)
+                .setColorRes(colors)
+                .setDefaultColor(color)
+                .setColorListener(new ColorListener() {
+                    @Override
+                    public void onColorSelected(int newColor, @NotNull String colorHex) {
+                        EditDialogFragment.this.color = newColor;
+                        MaterialButton colorButton = rootView.findViewById(R.id.edittrackColor);
+                        colorButton.setBackgroundColor(newColor);
+                    }
+                })
+                .show();
     }
 
     @Override

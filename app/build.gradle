@@ -58,12 +58,14 @@ release {
 dependencies {
     repositories {
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     //noinspection AnnotationProcessorOnCompilePath
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     // Waveform library
+    implementation 'com.github.massoudss:waveformSeekBar:5.0.1'
 
     // Media libraries
     implementation 'com.google.android.exoplayer:exoplayer:2.18.1'
@@ -74,6 +76,8 @@ dependencies {
     // Special activities
     implementation 'androidx.preference:preference-ktx:1.2.0'
     implementation 'io.github.medyo:android-about-page:2.0.0'
+    implementation 'com.github.AppIntro:AppIntro:6.1.0'
+    implementation 'com.github.Dhaval2404:ColorPicker:2.3'
 
     // DB layer
     implementation 'androidx.room:room-runtime:2.6.1'
